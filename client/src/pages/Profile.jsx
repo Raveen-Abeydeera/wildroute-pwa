@@ -12,7 +12,10 @@ export default function Profile() {
             try {
                 const storedUser = JSON.parse(localStorage.getItem('user'));
                 if (!storedUser) return navigate('/login');
-                const res = await axios.get(`http://localhost:5000/api/users/${storedUser.id}`);
+                
+                // --- FIXED: VITE_API_URL ---
+                const apiUrl = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
+                const res = await axios.get(`${apiUrl}/api/users/${storedUser.id}`);
                 setProfileData(res.data);
             } catch (err) { console.error(err); } finally { setLoading(false); }
         };
@@ -102,3 +105,4 @@ export default function Profile() {
         </div>
     );
 }
+
