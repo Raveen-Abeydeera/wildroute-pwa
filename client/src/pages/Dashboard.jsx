@@ -36,7 +36,8 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchSightings = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/sightings/all');
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
+        const res = await axios.get(`${apiUrl}/api/sightings/all`);
         setSightings(res.data);
       } catch (err) { console.error("Error fetching sightings:", err); }
     };
@@ -129,4 +130,5 @@ export default function Dashboard() {
       {selectedSighting && <SightingSheet sighting={selectedSighting} onClose={() => setSelectedSighting(null)} onVerify={() => { alert('Verification Sent!'); setSelectedSighting(null); }} />}
     </div>
   );
+
 }
