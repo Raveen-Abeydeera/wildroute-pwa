@@ -12,39 +12,29 @@ export default function Signup() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
-    // Quick validation
-    if (!formData.mobileNumber) {
-      setError("Mobile number is required");
-      return;
-    }
 
     try {
-      // Uses VITE_API_URL or falls back to your Render URL
+      // --- FIXED: Use Render URL as the fallback (Not Localhost!) ---
       const apiUrl = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
       
-      console.log("Signing up to:", apiUrl); // Helpful for debugging
+      console.log("Signing up to:", apiUrl); 
       await axios.post(`${apiUrl}/api/auth/register`, formData);
       
       navigate('/login');
     } catch (err) {
       console.error("Signup Error:", err);
       
-      // 1. Check for Backend Message (e.g. "User already exists")
+      // 1. Backend Error Message (e.g. "User already exists")
       if (err.response?.data?.message) {
         setError(err.response.data.message);
       } 
-      // 2. Check for Backend Error Key (e.g. 500 Server Errors)
+      // 2. Backend Error Key (e.g. Server Crashed)
       else if (err.response?.data?.error) {
         setError(err.response.data.error);
       }
-      // 3. Check for Network Error (e.g. Server Unreachable)
-      else if (err.message) {
-        setError(`Network Error: ${err.message}`);
-      }
-      // 4. Fallback
+      // 3. Network Error (e.g. Phone can't reach Internet)
       else {
-        setError('Signup failed. Please check your connection.');
+        setError('Network Error: Could not connect to server.');
       }
     } finally {
       setLoading(false);
@@ -62,29 +52,34 @@ export default function Signup() {
 
         <div className="rounded-2xl bg-white dark:bg-[#16181c] p-8 shadow-xl dark:shadow-none border border-gray-100 dark:border-gray-800">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-center text-sm text-red-600 dark:text-red-400 break-words font-medium">{error}</div>}
+            {/* ERROR BOX */}
+            {error && (
+              <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-center text-sm text-red-600 dark:text-red-400 break-words font-medium border border-red-200 dark:border-red-800">
+                {error}
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Full Name</label>
-              <input type="text" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="John Doe" onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} />
+              <input type="text" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white outline-none focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d]" placeholder="John Doe" onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} />
             </div>
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Email</label>
-              <input type="email" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="ranger@wildroute.com" onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+              <input type="email" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white outline-none focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d]" placeholder="ranger@wildroute.com" onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
             </div>
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Mobile Number</label>
-              <input type="tel" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="0771234567" onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })} />
+              <input type="tel" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white outline-none focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d]" placeholder="0771234567" onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })} />
             </div>
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Password</label>
-              <input type="password" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="••••••••" onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+              <input type="password" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white outline-none focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d]" placeholder="••••••••" onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
             </div>
 
-            <button type="submit" disabled={loading} className="w-full rounded-xl bg-[#19664d] py-3.5 font-bold text-white shadow-lg shadow-[#19664d]/20 hover:bg-[#14523d] transition-transform active:scale-[0.98] disabled:opacity-50">
+            <button type="submit" disabled={loading} className="w-full rounded-xl bg-[#19664d] py-3.5 font-bold text-white shadow-lg hover:bg-[#14523d] active:scale-[0.98] disabled:opacity-50">
               {loading ? 'Creating Account...' : 'Sign Up'}
             </button>
           </form>
@@ -93,7 +88,6 @@ export default function Signup() {
             Already have an account? <button onClick={() => navigate('/login')} className="font-bold text-[#19664d] hover:underline">Log In</button>
           </p>
         </div>
-
       </div>
     </div>
   );
