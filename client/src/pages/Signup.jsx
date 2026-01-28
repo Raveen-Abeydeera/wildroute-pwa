@@ -4,7 +4,6 @@ import axios from 'axios';
 
 export default function Signup() {
   const navigate = useNavigate();
-  // Added mobileNumber to state
   const [formData, setFormData] = useState({ fullName: '', email: '', mobileNumber: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,13 +12,40 @@ export default function Signup() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
+    // Quick validation
+    if (!formData.mobileNumber) {
+      setError("Mobile number is required");
+      return;
+    }
+
     try {
-      // FIXED: Uses VITE_API_URL instead of localhost
+      // Uses VITE_API_URL or falls back to your Render URL
       const apiUrl = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
+      
+      console.log("Signing up to:", apiUrl); // Helpful for debugging
       await axios.post(`${apiUrl}/api/auth/register`, formData);
+      
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed');
+      console.error("Signup Error:", err);
+      
+      // 1. Check for Backend Message (e.g. "User already exists")
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } 
+      // 2. Check for Backend Error Key (e.g. 500 Server Errors)
+      else if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      }
+      // 3. Check for Network Error (e.g. Server Unreachable)
+      else if (err.message) {
+        setError(`Network Error: ${err.message}`);
+      }
+      // 4. Fallback
+      else {
+        setError('Signup failed. Please check your connection.');
+      }
     } finally {
       setLoading(false);
     }
@@ -36,7 +62,7 @@ export default function Signup() {
 
         <div className="rounded-2xl bg-white dark:bg-[#16181c] p-8 shadow-xl dark:shadow-none border border-gray-100 dark:border-gray-800">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-center text-sm text-red-600 dark:text-red-400">{error}</div>}
+            {error && <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-center text-sm text-red-600 dark:text-red-400 break-words font-medium">{error}</div>}
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Full Name</label>
@@ -48,7 +74,6 @@ export default function Signup() {
               <input type="email" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="ranger@wildroute.com" onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
             </div>
 
-            {/* --- NEW FIELD: Mobile Number --- */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Mobile Number</label>
               <input type="tel" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="0771234567" onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })} />
@@ -73,4 +98,3 @@ export default function Signup() {
     </div>
   );
 }
-
