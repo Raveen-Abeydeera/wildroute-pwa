@@ -39,7 +39,11 @@ export default function ReportSighting() {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
             const payload = { ...formData, reporterId: user.id, latitude: location.lat || 0, longitude: location.lng || 0 };
-            await axios.post('http://localhost:5000/api/sightings/create', payload);
+            
+            // --- FIXED: VITE_API_URL ---
+            const apiUrl = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
+            await axios.post(`${apiUrl}/api/sightings/create`, payload);
+            
             navigate('/success');
         } catch (err) { alert('Failed to submit report.'); } finally { setLoading(false); }
     };
@@ -159,3 +163,4 @@ export default function ReportSighting() {
         </div>
     );
 }
+
