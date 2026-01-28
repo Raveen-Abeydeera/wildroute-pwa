@@ -15,11 +15,15 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', formData);
+      // --- FIXED: Use the correct API URL ---
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
+      const res = await axios.post(`${apiUrl}/api/auth/login`, formData);
+      
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       navigate('/dashboard');
     } catch (err) {
+      console.error(err); // Good for debugging
       setError(err.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
@@ -27,10 +31,8 @@ export default function Login() {
   };
 
   return (
-    // 1. UPDATE CONTAINER COLORS
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-6 overflow-hidden bg-gray-50 dark:bg-[#0e191b] font-sans text-gray-900 dark:text-white transition-colors duration-300">
 
-      {/* Background Nature Pattern (Visible mainly in Dark Mode or low opacity in Light) */}
       <div className="absolute inset-0 opacity-10 dark:opacity-40 pointer-events-none" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1549366021-9f761d450615?q=80&w=1000&auto=format&fit=crop")', backgroundSize: 'cover' }}></div>
       <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-[#1a535b]/10 dark:bg-[#1a535b]/20 rounded-full blur-[100px]"></div>
       <div className="absolute bottom-[-5%] left-[-5%] w-80 h-80 bg-[#81b29a]/10 dark:bg-[#81b29a]/10 rounded-full blur-[100px]"></div>
@@ -46,7 +48,6 @@ export default function Login() {
           </p>
         </div>
 
-        {/* 2. UPDATE CARD COLORS */}
         <div className="bg-white/80 dark:bg-[#0e191b]/70 backdrop-blur-md border border-gray-200 dark:border-[#1a535b]/30 rounded-2xl p-8 shadow-2xl">
 
           {error && (
