@@ -15,7 +15,7 @@ export default function Signup() {
     setError('');
     try {
       // FIXED: Uses VITE_API_URL instead of localhost
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
       await axios.post(`${apiUrl}/api/auth/register`, formData);
       navigate('/login');
     } catch (err) {
@@ -73,3 +73,4 @@ export default function Signup() {
     </div>
   );
 }
+
