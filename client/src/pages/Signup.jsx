@@ -4,7 +4,8 @@ import axios from 'axios';
 
 export default function Signup() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ fullName: '', email: '', password: '' });
+  // Added mobileNumber to state
+  const [formData, setFormData] = useState({ fullName: '', email: '', mobileNumber: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -13,7 +14,9 @@ export default function Signup() {
     setLoading(true);
     setError('');
     try {
-      await axios.post('http://localhost:5000/api/auth/register', formData);
+      // FIXED: Uses VITE_API_URL instead of localhost
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      await axios.post(`${apiUrl}/api/auth/register`, formData);
       navigate('/login');
     } catch (err) {
       setError(err.response?.data?.message || 'Signup failed');
@@ -43,6 +46,12 @@ export default function Signup() {
             <div>
               <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Email</label>
               <input type="email" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="ranger@wildroute.com" onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+            </div>
+
+            {/* --- NEW FIELD: Mobile Number --- */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Mobile Number</label>
+              <input type="tel" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="0771234567" onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })} />
             </div>
 
             <div>
