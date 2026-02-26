@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   // --- Identity (From Sign Up & Login Screens) ---
@@ -16,8 +17,9 @@ const userSchema = new mongoose.Schema({
   },
   mobileNumber: {
     type: String,
-    required: true, // Required based on your Sign-Up UI
-    unique: true
+    required: false, // Changed from true to false to match Signup UI
+    unique: true,
+    sparse: true // Allows multiple users to have no mobile number
   },
   password: {
     type: String,
@@ -31,8 +33,12 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['User', 'Ranger', 'Conservationist', 'Admin'],
-    default: 'User' // Default role
+    enum: ['user', 'ranger', 'admin'], // Updated roles
+    default: 'user'
+  },
+  departmentId: {
+    type: String, // For Rangers/Admins
+    required: false
   },
   assignedZone: {
     type: String, // e.g., "Zone A", "Sector B" as seen in Profile
@@ -77,6 +83,20 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+});
+
+// Method to compare passwords
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Middleware to hash password before saving
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 module.exports = mongoose.model('User', userSchema);
