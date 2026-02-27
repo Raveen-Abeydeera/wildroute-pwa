@@ -1,42 +1,70 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Splash from './pages/Splash';
-import Onboarding from './pages/Onboarding';
-import Signup from './pages/Signup';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import DriveMode from './pages/DriveMode';
-import ReportSighting from './pages/ReportSighting';
-import Profile from './pages/Profile';
-import Settings from './pages/Settings';
-import Success from './pages/Success';
-import Saved from './pages/Saved';
-import Alerts from './pages/Alerts';
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Splash from "./pages/Splash";
+import Onboarding from "./pages/Onboarding";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
+import RangerDashboard from "./pages/RangerDashboard"; // Import new dashboard
+import ReportSighting from "./pages/ReportSighting";
+import Alerts from "./pages/Alerts";
+import Saved from "./pages/Saved";
+import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
+import Settings from "./pages/Settings";
+import DriveMode from "./pages/DriveMode";
+import Success from "./pages/Success";
+import { ThemeProvider } from "./context/ThemeContext";
 
 function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading time (e.g., waiting for assets or auth check)
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000); // 2 seconds splash screen
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <ThemeProvider>
+        <Router>
+          <Splash />
+        </Router>
+      </ThemeProvider>
+    );
+  }
+
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Start at Splash Screen */}
-        <Route path="/" element={<Splash />} />
+    <ThemeProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Onboarding />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
-        {/* Onboarding Flow */}
-        <Route path="/onboarding" element={<Onboarding />} />
+          {/* User Routes */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/report" element={<ReportSighting />} />
+          <Route path="/alerts" element={<Alerts />} />
+          <Route path="/saved" element={<Saved />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/edit-profile" element={<EditProfile />} /> {/* <-- Add this line */}
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/drive" element={<DriveMode />} />
+          <Route path="/success" element={<Success />} />
 
-        {/* Auth Flow */}
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/login" element={<Login />} />
+          {/* Ranger Routes */}
+          <Route path="/ranger-dashboard" element={<RangerDashboard />} />
 
-        {/* Main App */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/drive" element={<DriveMode />} />
-        <Route path="/report" element={<ReportSighting />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/success" element={<Success />} />
-        <Route path="/saved" element={<Saved />} />
-        <Route path="/alerts" element={<Alerts />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 
 export default function SightingSheet({ sighting, onClose, onVerify }) {
+    const API_URL = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
     if (!sighting) return null;
 
     const calculateTimeLeft = () => {
-        if (!sighting?.timestamp) return "00:00:00";
-        const expiresAt = new Date(new Date(sighting.timestamp).getTime() + 4 * 60 * 60 * 1000);
+        // CORRECTED: Use .createdAt instead of .timestamp
+        if (!sighting?.createdAt) return "00:00:00";
+        const expiresAt = new Date(new Date(sighting.createdAt).getTime() + 4 * 60 * 60 * 1000);
         const difference = expiresAt - new Date();
         if (difference <= 0) return "EXPIRED";
         const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
@@ -35,18 +37,20 @@ export default function SightingSheet({ sighting, onClose, onVerify }) {
                         <h2 className="text-gray-900 dark:text-white text-2xl font-bold">Elephant Sighting</h2>
                         <p className="text-[#1a535b] dark:text-[#19cee6] text-sm mt-1 flex items-center gap-1">
                             <span className="material-symbols-outlined text-sm">schedule</span>
-                            Reported {new Date(sighting.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            Reported {new Date(sighting.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                     </div>
-                    <div className="bg-red-100 text-red-600 dark:bg-[#19cee6]/10 dark:text-[#19cee6] px-3 py-1 rounded-full text-xs font-bold border border-red-200 dark:border-[#19cee6]/20">
-                        HIGH RISK
+                    <div className={`px-3 py-1 rounded-full text-xs font-bold border ${sighting.status === 'verified'
+                        ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-500/20 dark:text-green-400 dark:border-green-500/30'
+                        : 'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-500/30'}`}>
+                        {sighting.status === 'verified' ? '✓ VERIFIED' : '⚠ UNVERIFIED'}
                     </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="col-span-2 relative h-48 rounded-xl overflow-hidden group bg-gray-100 dark:bg-gray-800">
                         {sighting.imageUrl ? (
-                            <img src={sighting.imageUrl} alt="Sighting" className="w-full h-full object-cover" />
+                            <img src={`${API_URL}${sighting.imageUrl}`} alt="Sighting" className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 dark:text-white/20">
                                 <span className="material-symbols-outlined text-4xl">image_not_supported</span>
@@ -61,8 +65,8 @@ export default function SightingSheet({ sighting, onClose, onVerify }) {
                     </div>
 
                     <div className="col-span-1 bg-gray-50 dark:bg-[#1A1F24] p-4 rounded-xl border border-gray-200 dark:border-white/5">
-                        <p className="text-gray-500 dark:text-white/50 text-[10px] font-bold uppercase tracking-wider mb-1">Status</p>
-                        <span className="text-gray-900 dark:text-white text-xl font-bold">{sighting.behavior}</span>
+                        <p className="text-gray-500 dark:text-white/50 text-[10px] font-bold uppercase tracking-wider mb-1">Details</p>
+                        <span className="text-gray-900 dark:text-white text-md font-bold line-clamp-2">{sighting.description}</span>
                     </div>
                 </div>
 

@@ -26,7 +26,12 @@ export default function Splash() {
                 <div className="relative mb-8 group animate-pulse">
                     <div className="absolute inset-0 bg-[#138639]/20 rounded-full blur-2xl"></div>
                     <div className="w-32 h-32 flex items-center justify-center border-2 border-[#138639]/30 rounded-full relative bg-[#111712]/40 backdrop-blur-sm">
-                        <span className="material-symbols-outlined text-[#138639] text-6xl">potted_plant</span>
+
+                        <img
+                            src="/pwa-192x192.png"
+                            alt="WildRoute Logo"
+                            className="w-16 h-16 object-contain"
+                        />
                     </div>
                 </div>
 

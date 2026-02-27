@@ -33,7 +33,7 @@ export default function Settings() {
                     <span className="material-symbols-outlined block text-[#1a535b] dark:text-white">arrow_back_ios_new</span>
                 </button>
                 <div className="flex-1 ml-4">
-                    <h1 className="text-3xl font-extrabold tracking-tight uppercase italic">Settings</h1>
+                    <h1 className="text-3xl font-extrabold tracking-tight uppercase">Settings</h1>
                     <p className="text-xs font-medium opacity-60 tracking-[0.2em] uppercase">Expedition Config</p>
                 </div>
             </header>

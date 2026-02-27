@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
     const navigate = useNavigate();
+    const API_URL = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -12,10 +13,7 @@ export default function Profile() {
             try {
                 const storedUser = JSON.parse(localStorage.getItem('user'));
                 if (!storedUser) return navigate('/login');
-                
-                // --- FIXED: VITE_API_URL ---
-                const apiUrl = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
-                const res = await axios.get(`${apiUrl}/api/users/${storedUser.id}`);
+                const res = await axios.get(`${API_URL}/api/users/${storedUser.id}`);
                 setProfileData(res.data);
             } catch (err) { console.error(err); } finally { setLoading(false); }
         };
@@ -59,7 +57,12 @@ export default function Profile() {
                 </div>
 
                 <div className="flex w-full gap-3">
-                    <button className="flex-1 h-12 rounded-xl bg-gray-200 dark:bg-[#2a3f41] font-bold text-sm text-gray-700 dark:text-white">Edit Profile</button>
+                    <button
+                        onClick={() => navigate('/edit-profile')}
+                        className="flex-1 h-12 rounded-xl bg-gray-200 dark:bg-[#2a3f41] font-bold text-sm text-gray-700 dark:text-white"
+                    >
+                        Edit Profile
+                    </button>
                     <button onClick={() => navigate('/settings')} className="flex-1 h-12 rounded-xl bg-[#1a535b] text-white font-bold text-sm shadow-lg">Settings</button>
                 </div>
             </section>
@@ -105,4 +108,3 @@ export default function Profile() {
         </div>
     );
 }
-

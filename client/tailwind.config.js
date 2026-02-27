@@ -6,7 +6,18 @@ export default {
   ],
   darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        // This overrides the default 'font-sans' to use Inter globally
+        sans: ['Inter', 'sans-serif'],
+      },
+      // You can also drop your color palette in here too!
+      colors: {
+        'wild-teal': '#1A535B',
+        'alert-red': '#E04040',
+        'risk-orange': '#D4A373',
+      }
+    },
   },
   plugins: [],
 }
