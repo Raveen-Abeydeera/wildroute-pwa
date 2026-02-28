@@ -41,8 +41,12 @@ export default function Profile() {
                 <div className="flex flex-col items-center gap-4">
                     <div className="relative">
                         {/* --- FIXED AVATAR ICON --- */}
-                        <div className="size-32 rounded-full border-4 border-gray-200 dark:border-[#1a535b]/20 p-1 bg-gray-100 dark:bg-[#1a535b]/10 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-gray-400 dark:text-[#1a535b] text-6xl">person</span>
+                        <div className="size-32 rounded-full border-4 border-gray-200 dark:border-[#1a535b]/20 p-1 bg-gray-100 dark:bg-[#1a535b]/10 flex items-center justify-center overflow-hidden">
+                            {user.profileImage ? (
+                                <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                            ) : (
+                                <span className="material-symbols-outlined text-gray-400 dark:text-[#1a535b] text-6xl">person</span>
+                            )}
                         </div>
                         {/* ------------------------- */}
                         <div className="absolute bottom-1 right-1 bg-[#1a535b] text-white p-1 rounded-full border-2 border-white dark:border-[#0e191b]">

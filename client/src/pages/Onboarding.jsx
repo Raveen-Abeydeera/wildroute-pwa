@@ -7,21 +7,21 @@ const slides = [
         icon: 'security',
         title: 'Stay Safe',
         description: 'Real-time monitoring and safety alerts for elephant-dense regions to protect both humans and wildlife.',
-        image: 'https://images.unsplash.com/photo-1581852017103-68accd557203?q=80&w=1000&auto=format&fit=crop'
+        image: '/Onbaordingscreen1.png'
     },
     {
         id: 2,
         icon: 'alt_route',
         title: 'Smart Routing',
         description: 'Avoid the red, follow the green. Our system reroutes you around active elephant crossings.',
-        image: 'https://images.unsplash.com/photo-1544666324-460d3d664c01?q=80&w=1000&auto=format&fit=crop'
+        image: '/Onbaordingscreen2.png'
     },
     {
         id: 3,
         icon: 'share_location',
         title: 'Community Driven',
         description: 'Report sightings to earn points and help fellow rangers navigate safely.',
-        image: 'https://images.unsplash.com/photo-1503919005314-30d93d07d823?q=80&w=1000&auto=format&fit=crop'
+        image: '/Onbaordingscreen3.png'
     }
 ];
 
@@ -43,8 +43,8 @@ export default function Onboarding() {
             {/* Top Bar */}
             <div className="flex items-center justify-between p-6 z-20">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-[#19664d] rounded-lg flex items-center justify-center">
-                        <span className="material-symbols-outlined text-white text-lg">nature</span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img src="/pwa-192x192.png" alt="WildRoute Logo" className="w-full h-full object-contain" />
                     </div>
                     <span className="text-xs font-bold tracking-widest uppercase text-gray-500 dark:opacity-70">WildRoute</span>
                 </div>

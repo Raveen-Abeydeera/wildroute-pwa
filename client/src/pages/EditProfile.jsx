@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function EditProfile() {
     const navigate = useNavigate();
@@ -63,31 +64,35 @@ export default function EditProfile() {
         e.preventDefault();
         setLoading(true);
 
-        // IMPORTANT: Because you are uploading a file, you'll likely need to send FormData to your backend
-        /*
-        const submitData = new FormData();
-        submitData.append('email', formData.email);
-        submitData.append('phone', formData.phone);
-        submitData.append('address', formData.address);
-        if (formData.newPassword) {
-            submitData.append('currentPassword', formData.currentPassword);
-            submitData.append('newPassword', formData.newPassword);
-        }
-        if (imageFile) {
-            submitData.append('profileImage', imageFile);
-        }
-        
-        const API_URL = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
-        await axios.put(`${API_URL}/api/users/${storedUser.id}`, submitData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        */
+        try {
+            const storedUser = JSON.parse(localStorage.getItem('user'));
+            const API_URL = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
 
-        // Simulating an API call for now
-        setTimeout(() => {
+            const submitData = new FormData();
+            submitData.append('email', formData.email);
+            submitData.append('phone', formData.phone);
+            submitData.append('address', formData.address);
+
+            if (imageFile) {
+                submitData.append('profileImage', imageFile);
+            }
+
+            // Send to backend (use _id or id depending on your DB)
+            const userId = storedUser._id || storedUser.id;
+            const res = await axios.put(`${API_URL}/api/users/${userId}`, submitData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            // Update the local storage with the NEW image URL so the dashboard sees it!
+            localStorage.setItem('user', JSON.stringify(res.data));
+
             setLoading(false);
             navigate('/profile');
-        }, 1500);
+        } catch (error) {
+            console.error("Update failed", error);
+            setLoading(false);
+            alert("Failed to update profile.");
+        }
     };
 
     const handleVerifyEmail = () => {

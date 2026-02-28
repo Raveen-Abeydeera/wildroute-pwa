@@ -49,6 +49,7 @@ const Dashboard = () => {
   const { theme } = useTheme(); // Get current theme
   const API_URL = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
   const [userName, setUserName] = useState('User');
+  const [profileImg, setProfileImg] = useState(null); // Add this state at the top
   const [userLocation, setUserLocation] = useState(null);
   const [sightings, setSightings] = useState([]); // State for live sightings
 
@@ -59,8 +60,17 @@ const Dashboard = () => {
   ]);
 
   useEffect(() => {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-    if (userInfo) setUserName(userInfo.name.split(' ')[0]);
+    // FIX: Look for 'user', not 'userInfo'
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    if (storedUser) {
+      // Get the first name
+      const name = storedUser.fullName || storedUser.name || 'User';
+      setUserName(name.split(' ')[0]);
+      // Set the profile image
+      if (storedUser.profileImage) {
+        setProfileImg(storedUser.profileImage);
+      }
+    }
 
     // Fetch Live Sightings from Backend
     const fetchSightings = async () => {
@@ -102,10 +112,14 @@ const Dashboard = () => {
               Welcome, <span className="text-green-600 dark:text-green-400 dark:drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]">{userName}</span>
             </h1>
           </div>
-          <div onClick={() => navigate('/profile')} className="bg-gray-100 dark:bg-gray-700/50 p-2 rounded-full cursor-pointer border border-gray-200 dark:border-green-500/30 hover:bg-green-100 dark:hover:bg-green-500/20 hover:border-green-400 transition shadow-sm dark:shadow-[0_0_10px_rgba(34,197,94,0.1)]">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
+          <div onClick={() => navigate('/profile')} className="w-10 h-10 bg-gray-100 dark:bg-gray-700/50 rounded-full cursor-pointer border border-gray-200 dark:border-green-500/30 hover:bg-green-100 dark:hover:bg-green-500/20 hover:border-green-400 transition shadow-sm dark:shadow-[0_0_10px_rgba(34,197,94,0.1)] overflow-hidden flex items-center justify-center">
+            {profileImg ? (
+              <img src={profileImg} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            )}
           </div>
         </div>
 
