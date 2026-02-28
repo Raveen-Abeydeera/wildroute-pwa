@@ -13,10 +13,12 @@ cloudinary.config({
 });
 
 // 2. Configure Storage Engine for Profile Pictures using v2.2.1 syntax
-const storage = CloudinaryStorage({
+const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
-    folder: 'wildroute_profiles',
-    allowedFormats: ['jpg', 'png', 'jpeg'],
+    params: {
+        folder: 'wildroute_profiles',
+        allowed_formats: ['jpg', 'png', 'jpeg'],
+    }
 });
 const upload = multer({ storage: storage });
 
