@@ -79,6 +79,20 @@ const userSchema = new mongoose.Schema({
     }
   },
 
+  // --- Profile Editable Fields ---
+  phone: {
+    type: String,
+    default: ''
+  },
+  address: {
+    type: String,
+    default: ''
+  },
+  profileImage: {
+    type: String,
+    default: null
+  },
+
   createdAt: {
     type: Date,
     default: Date.now
