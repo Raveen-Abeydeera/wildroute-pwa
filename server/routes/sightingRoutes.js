@@ -17,7 +17,7 @@ cloudinary.config({
 // 2. Configure Storage Engine (v2.2.1 syntax)
 const storage = cloudinaryStorage({
   cloudinary: cloudinary,
-  folder: 'wildroute_sightings',
+  folder: 'dmewqz26w',
   allowedFormats: ['jpg', 'png', 'jpeg', 'gif'],
 });
 
