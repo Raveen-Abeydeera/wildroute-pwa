@@ -2,8 +2,10 @@ const router = require('express').Router();
 const User = require('../models/User');
 const Sighting = require('../models/Sighting');
 const multer = require('multer');
-const { v2: cloudinary } = require('cloudinary');
-const CloudinaryStorage = require('multer-storage-cloudinary');
+
+// --- THE FIX IS HERE ---
+const cloudinary = require('cloudinary'); // Import base cloudinary
+const cloudinaryStorage = require('multer-storage-cloudinary'); // It's a function in v2.2.1, not a class
 
 // 1. Configure Cloudinary
 cloudinary.config({
@@ -12,13 +14,11 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// 2. Configure Storage Engine for Profile Pictures using v2.2.1 syntax
-const storage = new CloudinaryStorage({
+// 2. Configure Storage Engine (v2.2.1 syntax)
+const storage = cloudinaryStorage({
     cloudinary: cloudinary,
-    params: {
-        folder: 'wildroute_profiles',
-        allowed_formats: ['jpg', 'png', 'jpeg'],
-    }
+    folder: 'wildroute_profiles',
+    allowedFormats: ['jpg', 'png', 'jpeg'],
 });
 const upload = multer({ storage: storage });
 

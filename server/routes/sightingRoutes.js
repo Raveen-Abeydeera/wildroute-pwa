@@ -2,8 +2,10 @@ const router = require('express').Router();
 const Sighting = require('../models/Sighting');
 const User = require('../models/User');
 const multer = require('multer');
-const { v2: cloudinary } = require('cloudinary');
-const CloudinaryStorage = require('multer-storage-cloudinary');
+
+// --- THE FIX IS HERE ---
+const cloudinary = require('cloudinary');
+const cloudinaryStorage = require('multer-storage-cloudinary');
 
 // 1. Configure Cloudinary
 cloudinary.config({
@@ -12,13 +14,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// 2. Configure Storage Engine to upload directly to Cloudinary
-const storage = new CloudinaryStorage({
+// 2. Configure Storage Engine (v2.2.1 syntax)
+const storage = cloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'wildroute_sightings', // The folder name in your Cloudinary dashboard
-    allowed_formats: ['jpg', 'png', 'jpeg', 'gif'],
-  },
+  folder: 'wildroute_sightings',
+  allowedFormats: ['jpg', 'png', 'jpeg', 'gif'],
 });
 
 const upload = multer({ storage: storage });
