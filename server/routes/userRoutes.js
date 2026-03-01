@@ -17,7 +17,7 @@ cloudinary.config({
 // 2. Configure Storage Engine (v2.2.1 syntax)
 const storage = cloudinaryStorage({
     cloudinary: cloudinary,
-    folder: 'wildroute_profiles',
+    folder: 'dmewqz26w',
     allowedFormats: ['jpg', 'png', 'jpeg'],
 });
 const upload = multer({ storage: storage });
@@ -48,9 +48,10 @@ router.put('/:id', upload.single('profileImage'), async (req, res) => {
 
         let updateData = { email, phone, address };
 
-        // If an image was uploaded, add the Cloudinary URL to the update
+        // If an image was uploaded, grab the secure Cloudinary URL
         if (req.file) {
-            updateData.profileImage = req.file.path;
+            updateData.profileImage = req.file.secure_url || req.file.url || req.file.path;
+            console.log("Uploaded Image URL:", updateData.profileImage); // Log to help debug Render logs
         }
 
         const updatedUser = await User.findByIdAndUpdate(
