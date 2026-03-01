@@ -14,6 +14,7 @@ import EditProfile from "./pages/EditProfile";
 import Settings from "./pages/Settings";
 import DriveMode from "./pages/DriveMode";
 import Success from "./pages/Success";
+import SightingDetails from "./pages/SightingDetails";
 import { ThemeProvider } from "./context/ThemeContext";
 
 function App() {
@@ -56,6 +57,7 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/drive" element={<DriveMode />} />
           <Route path="/success" element={<Success />} />
+          <Route path="/sighting/:id" element={<SightingDetails />} />
 
           {/* Ranger Routes */}
           <Route path="/ranger-dashboard" element={<RangerDashboard />} />
