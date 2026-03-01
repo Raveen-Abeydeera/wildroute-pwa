@@ -99,8 +99,15 @@ export default function ReportSighting() {
             if (response.ok) {
                 navigate('/success');
             } else {
-                const data = await response.json();
-                setError(data.message || 'Failed to submit report.');
+                // SAFETY NET: Check if the response is actually JSON!
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const data = await response.json();
+                    setError(data.message || 'Failed to submit report.');
+                } else {
+                    // If it's HTML, the backend crashed
+                    setError('Server error: The backend crashed. Check Render logs!');
+                }
             }
         } catch (err) {
             console.error(err);
