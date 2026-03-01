@@ -15,11 +15,11 @@ const userSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
-  mobileNumber: {
+  phone: {
     type: String,
-    required: false, // Changed from true to false to match Signup UI
+    required: false,
     unique: true,
-    sparse: true // Allows multiple users to have no mobile number
+    sparse: true
   },
   password: {
     type: String,
@@ -27,10 +27,7 @@ const userSchema = new mongoose.Schema({
   },
 
   // --- Profile Details (From User Profile Screen) ---
-  profilePicture: {
-    type: String,
-    default: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" // Default avatar
-  },
+
   role: {
     type: String,
     enum: ['user', 'ranger', 'admin'], // Updated roles
