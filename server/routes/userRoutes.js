@@ -3,9 +3,9 @@ const User = require('../models/User');
 const Sighting = require('../models/Sighting');
 const multer = require('multer');
 
-// --- THE FIX IS HERE ---
-const cloudinary = require('cloudinary'); // Import base cloudinary
-const cloudinaryStorage = require('multer-storage-cloudinary'); // It's a function in v2.2.1, not a class
+// --- EXACT SYNTAX REQUIRED FOR v2.2.1 ---
+const cloudinary = require('cloudinary'); // NO v2!
+const cloudinaryStorage = require('multer-storage-cloudinary');
 
 // 1. Configure Cloudinary
 cloudinary.config({
@@ -14,11 +14,11 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// 2. Configure Storage Engine (v2.2.1 syntax)
+// 2. Configure Storage Engine 
 const storage = cloudinaryStorage({
     cloudinary: cloudinary,
-    folder: 'dmewqz26w',
-    allowedFormats: ['jpg', 'png', 'jpeg'],
+    folder: 'wildroute_profiles',
+    allowedFormats: ['jpg', 'png', 'jpeg'], // NO params, NO underscore
 });
 const upload = multer({ storage: storage });
 
