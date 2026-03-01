@@ -173,20 +173,32 @@ const Dashboard = () => {
                 return (
                   <React.Fragment key={sighting._id}>
                     <Marker position={[lat, lng]} icon={getSightingIcon(sighting.status)}>
-                      <Popup>
-                        <div className="text-black flex flex-col gap-1">
-                          <strong>{sighting.description || "Reported Sighting"}</strong>
+                      <Popup className="custom-popup">
+                        <div className="text-black flex flex-col gap-2 min-w-[160px] pb-1">
+                          <strong className="text-sm">{sighting.description || "Reported Sighting"}</strong>
 
                           {/* THE DYNAMIC BADGE */}
                           {isVerified ? (
-                            <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded border border-green-300 w-max mt-1">
+                            <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded border border-green-300 w-max">
                               ✓ Verified by Ranger
                             </span>
                           ) : (
-                            <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded border border-orange-300 w-max mt-1">
+                            <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded border border-orange-300 w-max">
                               ⚠ Unverified Report
                             </span>
                           )}
+
+                          {/* NEW: View Details Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevents map from zooming when clicking the button
+                              navigate(`/sighting/${sighting._id}`);
+                            }}
+                            className="mt-1 w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg shadow-md transition-transform active:scale-95 flex items-center justify-center gap-1"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">visibility</span>
+                            View Details
+                          </button>
                         </div>
                       </Popup>
                     </Marker>
