@@ -17,7 +17,7 @@ cloudinary.config({
 // 2. Configure Storage Engine (v2.2.1 syntax)
 const storage = cloudinaryStorage({
   cloudinary: cloudinary,
-  folder: 'wildroute_sightings',
+  folder: 'dmewqz26w',
   allowedFormats: ['jpg', 'png', 'jpeg', 'gif'],
 });
 
@@ -136,6 +136,60 @@ router.get('/nearby', async (req, res) => {
   } catch (error) {
     console.error("Proximity Error:", error);
     res.status(500).json({ message: 'Server Error' });
+  }
+});
+// @route   POST /api/sightings/:id/confirm
+// @desc    "I See It Too" - Extends the 4-hour window
+router.post('/:id/confirm', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const sighting = await Sighting.findById(req.params.id);
+    if (!sighting) return res.status(404).json({ message: 'Sighting not found' });
+
+    // Prevent double voting
+    if (!sighting.confirmations.includes(userId)) {
+      sighting.confirmations.push(userId);
+      // RESET the creation time to right now, extending it by another 4 hours!
+      sighting.createdAt = Date.now();
+      await sighting.save();
+    }
+    res.json(sighting);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// @route   POST /api/sightings/:id/safe
+// @desc    "Safe Now" - Resolves the alert if 3 people vote
+router.post('/:id/safe', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const sighting = await Sighting.findById(req.params.id);
+    if (!sighting) return res.status(404).json({ message: 'Sighting not found' });
+
+    if (!sighting.safeVotes.includes(userId)) {
+      sighting.safeVotes.push(userId);
+
+      // If 3 or more people say it's safe, remove it from the map!
+      if (sighting.safeVotes.length >= 3) {
+        sighting.status = 'resolved';
+      }
+      await sighting.save();
+    }
+    res.json(sighting);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// @route   GET /api/sightings/:id
+// @desc    Get a single sighting's details
+router.get('/:id', async (req, res) => {
+  try {
+    const sighting = await Sighting.findById(req.params.id).populate('user', 'fullName role');
+    res.json(sighting);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
