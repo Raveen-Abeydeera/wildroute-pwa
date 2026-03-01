@@ -28,9 +28,16 @@ const sightingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'verified', 'rejected'],
+    enum: ['pending', 'verified', 'rejected', 'resolved'],
     default: 'pending', // Requires Ranger verification to show on map
   },
+  // --- ADD THESE ARRAYS FOR VOTING ---
+  confirmations: [{
+    type: mongoose.Schema.Types.ObjectId, ref: 'User'
+  }],
+  safeVotes: [{
+    type: mongoose.Schema.Types.ObjectId, ref: 'User'
+  }],
   createdAt: {
     type: Date,
     default: Date.now,
