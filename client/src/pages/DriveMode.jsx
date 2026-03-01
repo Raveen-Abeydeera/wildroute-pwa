@@ -60,6 +60,41 @@ const DriveMode = () => {
 
   const watchId = useRef(null);
 
+  // --- 1. NEW REFS FOR AUDIO AND WAKE LOCK ---
+  const alarmAudio = useRef(null);
+  const wakeLock = useRef(null);
+
+  // --- 2. SETUP AUDIO & WAKE LOCK ON MOUNT ---
+  useEffect(() => {
+    // Initialize the audio object and set it to loop
+    alarmAudio.current = new Audio('/alarm.mp3');
+    alarmAudio.current.loop = true;
+
+    // Request Wake Lock to prevent the screen from turning off while driving
+    const requestWakeLock = async () => {
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLock.current = await navigator.wakeLock.request('screen');
+          console.log('Screen Wake Lock active');
+        } catch (err) {
+          console.error("Wake Lock failed:", err);
+        }
+      }
+    };
+    requestWakeLock();
+
+    // Cleanup when leaving Drive Mode
+    return () => {
+      if (alarmAudio.current) {
+        alarmAudio.current.pause();
+        alarmAudio.current.currentTime = 0;
+      }
+      if (wakeLock.current) {
+        wakeLock.current.release();
+      }
+    };
+  }, []);
+
   // Fetch all active sightings for the map display
   useEffect(() => {
     const fetchSightings = async () => {
@@ -98,6 +133,12 @@ const DriveMode = () => {
         if (res.data.length > 0) {
           setDangerAlerts(res.data); // Update the UI to show a red warning
 
+          // --- 3. PLAY THE ALARM ---
+          if (alarmAudio.current && alarmAudio.current.paused) {
+            // .catch is needed because browsers sometimes block audio if the user hasn't tapped the screen yet
+            alarmAudio.current.play().catch(e => console.log("Audio blocked by browser:", e));
+          }
+
           // Trigger an actual system notification on their phone
           if (Notification.permission === 'granted') {
             new Notification("CRITICAL ALERT: WildRoute", {
@@ -108,6 +149,12 @@ const DriveMode = () => {
           }
         } else {
           setDangerAlerts([]); // Clear warnings if they drove out of the 2km radius
+
+          // --- 4. STOP THE ALARM WHEN SAFE ---
+          if (alarmAudio.current && !alarmAudio.current.paused) {
+            alarmAudio.current.pause();
+            alarmAudio.current.currentTime = 0; // Reset to beginning
+          }
         }
       } catch (error) {
         console.error("Failed to calculate nearby risks", error);
