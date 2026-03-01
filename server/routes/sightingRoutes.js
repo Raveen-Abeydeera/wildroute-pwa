@@ -4,7 +4,7 @@ const User = require('../models/User');
 const multer = require('multer');
 
 // --- EXACT SYNTAX REQUIRED FOR v2.2.1 ---
-const cloudinary = require('cloudinary'); // NO v2!
+const cloudinary = require('cloudinary');
 const cloudinaryStorage = require('multer-storage-cloudinary');
 
 // 1. Configure Cloudinary
@@ -18,47 +18,56 @@ cloudinary.config({
 const storage = cloudinaryStorage({
   cloudinary: cloudinary,
   folder: 'wildroute_sightings',
-  allowedFormats: ['jpg', 'png', 'jpeg', 'gif'], // NO params, NO underscore
+  // FIX: We completely removed 'allowedFormats' here!
+  // This allows iPhone/Android .heic camera files to upload without crashing the server.
 });
 
 const upload = multer({ storage: storage });
 
 // @route   POST /api/sightings
-// @desc    Create a new sighting (Image is now uploaded to Cloudinary URL)
-router.post('/', upload.single('image'), async (req, res) => {
-  try {
-    const { userId, latitude, longitude, description } = req.body;
-
-    // VALIDATION: Ensure coordinates are valid numbers
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
-
-    if (isNaN(lat) || isNaN(lng)) {
-      return res.status(400).json({ message: 'Invalid coordinates provided.' });
+// @desc    Create a new sighting
+router.post('/', (req, res) => {
+  // FIX: We are wrapping the upload to catch crashes safely!
+  upload.single('image')(req, res, async (err) => {
+    if (err) {
+      console.error("MULTER UPLOAD ERROR:", err);
+      return res.status(400).json({ message: 'Image upload failed. File too large or unsupported format.', error: err.message });
     }
 
-    const newSighting = new Sighting({
-      user: userId,
-      location: {
-        type: 'Point',
-        coordinates: [lng, lat] // MongoDB expects [longitude, latitude]
-      },
-      description,
-      // Use secure_url to ensure the image shows up on the frontend
-      imageUrl: req.file ? (req.file.secure_url || req.file.url || req.file.path) : null,
-      status: 'pending'
-    });
+    try {
+      const { userId, latitude, longitude, description } = req.body;
 
-    const savedSighting = await newSighting.save();
+      // VALIDATION: Ensure coordinates are valid numbers
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
 
-    // Add +10 points to the user
-    await User.findByIdAndUpdate(userId, { $inc: { points: 10, reportsCount: 1 } });
+      if (isNaN(lat) || isNaN(lng)) {
+        return res.status(400).json({ message: 'Invalid coordinates provided.' });
+      }
 
-    res.status(201).json(savedSighting);
-  } catch (error) {
-    console.error("Error saving sighting:", error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
-  }
+      const newSighting = new Sighting({
+        user: userId,
+        location: {
+          type: 'Point',
+          coordinates: [lng, lat]
+        },
+        description,
+        // Use secure_url to ensure the image shows up on the frontend
+        imageUrl: req.file ? (req.file.secure_url || req.file.url || req.file.path) : null,
+        status: 'pending'
+      });
+
+      const savedSighting = await newSighting.save();
+
+      // Add +10 points to the user
+      await User.findByIdAndUpdate(userId, { $inc: { points: 10, reportsCount: 1 } });
+
+      res.status(201).json(savedSighting);
+    } catch (error) {
+      console.error("Error saving sighting to DB:", error);
+      res.status(500).json({ message: 'Database Error', error: error.message });
+    }
+  });
 });
 
 // @route   GET /api/sightings
