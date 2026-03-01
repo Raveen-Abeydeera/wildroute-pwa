@@ -101,8 +101,17 @@ export default function Profile() {
                 <h3 className="text-xs font-black tracking-[0.2em] uppercase px-2 text-gray-400">My Recent Reports</h3>
                 {recentReports.length === 0 ? <p className="text-center opacity-50 text-sm py-4">No reports yet.</p> : recentReports.map((report) => (
                     <div key={report._id} className="flex items-center gap-4 bg-white dark:bg-white/5 p-3 rounded-2xl border border-gray-200 dark:border-[#1a535b]/5 shadow-sm">
-                        <div className="size-16 rounded-xl bg-gray-100 dark:bg-[#1a535b]/20 flex items-center justify-center shrink-0">
-                            <span className="material-symbols-outlined text-gray-400 dark:text-white">map</span>
+                        {/* Image or Map Icon */}
+                        <div className="size-16 rounded-xl bg-gray-100 dark:bg-[#1a535b]/20 flex items-center justify-center shrink-0 overflow-hidden border border-gray-200 dark:border-white/5">
+                            {report.imageUrl ? (
+                                <img
+                                    src={report.imageUrl}
+                                    alt="Sighting Evidence"
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <span className="material-symbols-outlined text-gray-400 dark:text-[#9bbbbf]">map</span>
+                            )}
                         </div>
                         <div className="flex flex-col justify-center overflow-hidden">
                             <div className="flex items-center justify-between mb-0.5">
