@@ -7,20 +7,33 @@ export default function Profile() {
     const API_URL = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 const storedUser = JSON.parse(localStorage.getItem('user'));
                 if (!storedUser) return navigate('/login');
-                const res = await axios.get(`${API_URL}/api/users/${storedUser.id}`);
+
+                // FIX: Check for both MongoDB's _id and the standard id
+                const userId = storedUser._id || storedUser.id;
+
+                const res = await axios.get(`${API_URL}/api/users/${userId}`);
                 setProfileData(res.data);
-            } catch (err) { console.error(err); } finally { setLoading(false); }
+            } catch (err) {
+                console.error(err);
+                setError("Failed to load profile data");
+            } finally {
+                setLoading(false);
+            }
         };
         fetchProfile();
     }, [navigate]);
 
     if (loading) return <div className="h-screen bg-white dark:bg-[#0e191b] flex items-center justify-center text-gray-500 dark:text-white transition-colors">Loading Profile...</div>;
+
+    // FIX: Safety net to prevent the white screen crash if data is missing
+    if (error || !profileData) return <div className="h-screen bg-white dark:bg-[#0e191b] flex items-center justify-center text-red-500 transition-colors">{error || "Data missing"}</div>;
 
     const { user, stats, recentReports } = profileData;
 
@@ -40,7 +53,7 @@ export default function Profile() {
             <section className="flex flex-col items-center p-6 gap-6">
                 <div className="flex flex-col items-center gap-4">
                     <div className="relative">
-                        {/* --- FIXED AVATAR ICON --- */}
+                        {/* --- AVATAR FIX: Shows Image or Default Icon --- */}
                         <div className="size-32 rounded-full border-4 border-gray-200 dark:border-[#1a535b]/20 p-1 bg-gray-100 dark:bg-[#1a535b]/10 flex items-center justify-center overflow-hidden">
                             {user.profileImage ? (
                                 <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover rounded-full" />
@@ -54,9 +67,9 @@ export default function Profile() {
                         </div>
                     </div>
                     <div className="text-center">
-                        <h2 className="text-2xl font-bold leading-tight">{user.fullName}</h2>
+                        <h2 className="text-2xl font-bold leading-tight">{user.fullName || user.name || 'User'}</h2>
                         <p className="text-gray-500 dark:text-[#9bbbbf] font-medium">Field {user.role} • Zone A</p>
-                        <p className="text-gray-400 dark:text-[#9bbbbf]/60 text-xs mt-1 uppercase tracking-widest">Points: <span className="text-[#0bda54] font-bold">{user.points}</span></p>
+                        <p className="text-gray-400 dark:text-[#9bbbbf]/60 text-xs mt-1 uppercase tracking-widest">Points: <span className="text-[#0bda54] font-bold">{user.points || 0}</span></p>
                     </div>
                 </div>
 
@@ -93,10 +106,10 @@ export default function Profile() {
                         </div>
                         <div className="flex flex-col justify-center overflow-hidden">
                             <div className="flex items-center justify-between mb-0.5">
-                                <p className="font-bold text-sm truncate w-40">{report.behavior} Elephant(s)</p>
-                                <span className="bg-[#0bda54]/10 text-[#0bda54] text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">{report.isVerified ? 'Verified' : 'Pending'}</span>
+                                <p className="font-bold text-sm truncate w-40">{report.description || 'Elephant Sighting'}</p>
+                                <span className="bg-[#0bda54]/10 text-[#0bda54] text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">{report.status === 'verified' ? 'Verified' : 'Pending'}</span>
                             </div>
-                            <p className="text-xs opacity-60 mb-1 truncate">Count: {report.elephantCount} • "{report.notes}"</p>
+                            <p className="text-xs opacity-60 mb-1 truncate">Status: {report.status}</p>
                         </div>
                     </div>
                 ))}
@@ -105,7 +118,7 @@ export default function Profile() {
             {/* Bottom Nav */}
             <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[360px] h-16 bg-white/90 dark:bg-[#0e191b]/90 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-white/10 flex items-center justify-around px-6 shadow-2xl z-[100]">
                 <button onClick={() => navigate('/dashboard')} className="text-gray-400 dark:text-white/50 hover:text-[#1a535b] dark:hover:text-white"><span className="material-symbols-outlined">explore</span></button>
-                <button className="text-gray-400 dark:text-white/50 hover:text-[#1a535b] dark:hover:text-white"><span className="material-symbols-outlined">notifications</span></button>
+                <button onClick={() => navigate('/alerts')} className="text-gray-400 dark:text-white/50 hover:text-[#1a535b] dark:hover:text-white"><span className="material-symbols-outlined">notifications</span></button>
                 <button onClick={() => navigate('/report')} className="text-gray-400 dark:text-white/50 hover:text-[#1a535b] dark:hover:text-white"><span className="material-symbols-outlined">add_circle</span></button>
                 <button className="text-[#1a535b] dark:text-white scale-110"><span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>person</span></button>
             </nav>
