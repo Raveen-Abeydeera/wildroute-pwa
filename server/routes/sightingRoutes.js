@@ -44,8 +44,8 @@ router.post('/', upload.single('image'), async (req, res) => {
         coordinates: [lng, lat] // MongoDB expects [longitude, latitude]
       },
       description,
-      // Cloudinary automatically provides the secure URL in req.file.path
-      imageUrl: req.file ? req.file.path : null,
+      // Use secure_url to ensure the image shows up on the frontend
+      imageUrl: req.file ? (req.file.secure_url || req.file.url || req.file.path) : null,
       status: 'pending'
     });
 
