@@ -5,34 +5,34 @@ const User = require('../models/User');
 // --- REGISTER (Sign Up) ---
 router.post('/register', async (req, res) => {
   try {
-    const { fullName, email, mobileNumber, password } = req.body;
+    // 1. ADD 'phone' to the extracted body data
+    const { fullName, email, phone, password, role, departmentId } = req.body;
 
-    // 1. Check if user already exists
-    // If mobileNumber is provided, check both; otherwise just check email
-    const query = mobileNumber
-      ? { $or: [{ email }, { mobileNumber }] }
-      : { email };
-
-    const existingUser = await User.findOne(query);
-    if (existingUser) {
-      return res.status(400).json({ message: 'User with this email or mobile already exists.' });
+    // 2. Validate input
+    if (!fullName || !email || !phone || !password) {
+      return res.status(400).json({ message: 'Please provide all required fields, including phone number' });
     }
 
-    // 2. Create new user (Password hashing is handled by User model pre-save hook)
-    let role = 'user';
-    if (email.endsWith('@slwildlife.lk')) {
-      role = 'ranger';
+    // 3. Check if user exists (by email or phone)
+    const userExists = await User.findOne({ $or: [{ email }, { phone }] });
+    if (userExists) {
+      return res.status(400).json({ message: 'User with this email or phone already exists' });
     }
 
-    const newUser = new User({
+    // 4. Create user
+    let finalRole = role || 'user';
+    if (email && email.endsWith('@slwildlife.lk') && !role) {
+      finalRole = 'ranger';
+    }
+
+    const savedUser = await User.create({
       fullName,
       email,
-      mobileNumber, // Optional
+      phone, // Save the phone number
       password,
-      role
+      role: finalRole,
+      departmentId: finalRole === 'ranger' ? departmentId : undefined
     });
-
-    const savedUser = await newUser.save();
 
     // Generate token for immediate login
     const token = jwt.sign({ id: savedUser._id, role: savedUser.role }, process.env.JWT_SECRET || 'fallback_secret', { expiresIn: '1d' });
