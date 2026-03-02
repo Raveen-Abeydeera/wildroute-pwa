@@ -12,6 +12,9 @@ import Saved from "./pages/Saved";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Settings from "./pages/Settings";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import About from "./pages/About";
 import DriveMode from "./pages/DriveMode";
 import Success from "./pages/Success";
 import SightingDetails from "./pages/SightingDetails";
@@ -55,6 +58,9 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-profile" element={<EditProfile />} /> {/* <-- Add this line */}
           <Route path="/settings" element={<Settings />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/about" element={<About />} />
           <Route path="/drive" element={<DriveMode />} />
           <Route path="/success" element={<Success />} />
           <Route path="/sighting/:id" element={<SightingDetails />} />
