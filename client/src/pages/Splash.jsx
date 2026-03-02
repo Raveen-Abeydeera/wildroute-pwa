@@ -30,7 +30,7 @@ export default function Splash() {
                         <img
                             src="/pwa-192x192.png"
                             alt="WildRoute Logo"
-                            className="w-16 h-16 object-contain"
+                            className="w-30 h-30 object-contain rounded-full"
                         />
                     </div>
                 </div>
@@ -57,3 +57,4 @@ export default function Splash() {
         </div>
     );
 }
+
