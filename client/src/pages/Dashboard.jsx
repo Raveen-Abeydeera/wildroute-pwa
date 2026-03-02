@@ -179,7 +179,11 @@ const Dashboard = () => {
                     <Marker position={[lat, lng]} icon={getSightingIcon(sighting.status)}>
                       <Popup className="custom-popup">
                         <div className="text-black flex flex-col gap-2 min-w-[160px] pb-1">
-                          <strong className="text-sm">{sighting.description || "Reported Sighting"}</strong>
+                          <strong className="text-sm truncate w-full block">
+                            {sighting.description && sighting.description.includes('Notes:')
+                              ? sighting.description.split('Notes:')[1].trim()
+                              : (sighting.description || "Reported Sighting")}
+                          </strong>
 
                           {/* THE DYNAMIC BADGE */}
                           {isVerified ? (
