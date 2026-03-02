@@ -67,7 +67,7 @@ export default function Login() {
             {isRangerLogin ? (
               <span className="material-symbols-outlined text-white text-[48px]">local_police</span>
             ) : (
-              <img src="/pwa-192x192.png" alt="WildRoute" className="w-[52px] h-[52px] object-contain drop-shadow-md" />
+              <img src="/pwa-192x192.png" alt="WildRoute" className="w-[90px] h-[90px] object-contain drop-shadow-md" />
             )}
           </div>
           <h1 className="text-gray-900 dark:text-white tracking-tight text-4xl font-extrabold leading-tight text-center">
@@ -134,4 +134,5 @@ export default function Login() {
       </div>
     </div>
   );
+
 }
