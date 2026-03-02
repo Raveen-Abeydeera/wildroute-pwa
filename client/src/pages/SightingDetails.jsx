@@ -81,8 +81,27 @@ export default function SightingDetails() {
                         </div>
                     )}
 
-                    <div className="p-4">
-                        <h1 className="text-white text-2xl font-bold leading-tight">{sighting.description || "Wild Elephant Sighting"}</h1>
+                    <div className="p-4 space-y-2">
+                        {/* 1. Parse the complex description string into an array */}
+                        {sighting.description && sighting.description.includes('|') ? (
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                {sighting.description.split('|').map((part, index) => {
+                                    // Make "Count:" and "Behavior:" look like tags!
+                                    if (part.includes('Notes:')) return null; // Hide notes from tags
+                                    return (
+                                        <span key={index} className="bg-white/20 backdrop-blur-md text-white px-2 py-1 rounded text-xs font-bold border border-white/10">
+                                            {part.trim()}
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                        ) : null}
+
+                        {/* 2. Show the actual Notes as the main title */}
+                        <h1 className="text-white text-xl font-bold leading-tight">
+                            {sighting.description ? sighting.description.split('Notes:')[1]?.trim() || sighting.description : "Wild Elephant Sighting"}
+                        </h1>
+
                         <p className="text-[#2ecc70] font-medium text-sm flex items-center gap-1">
                             <span className="material-symbols-outlined text-sm">location_on</span>
                             Lat: {sighting.location?.coordinates?.[1]?.toFixed(4) || "N/A"}, Lng: {sighting.location?.coordinates?.[0]?.toFixed(4) || "N/A"}
