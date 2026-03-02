@@ -41,26 +41,41 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// --- UPDATE USER PROFILE (WITH IMAGE) ---
+// --- UPDATE USER PROFILE (WITH IMAGE & PASSWORD) ---
 router.put('/:id', upload.single('profileImage'), async (req, res) => {
     try {
-        const { email, phone, address } = req.body;
+        const { email, phone, address, currentPassword, newPassword } = req.body;
 
-        let updateData = { email, phone, address };
+        // 1. Find the user first (do NOT use findByIdAndUpdate yet)
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
-        // If an image was uploaded, grab the secure Cloudinary URL
-        if (req.file) {
-            updateData.profileImage = req.file.secure_url || req.file.url || req.file.path;
-            console.log("Uploaded Image URL:", updateData.profileImage); // Log to help debug Render logs
+        // 2. Handle Password Change if requested
+        if (currentPassword && newPassword) {
+            const isMatch = await user.matchPassword(currentPassword);
+            if (!isMatch) {
+                return res.status(400).json({ message: 'Current password is incorrect' });
+            }
+            // Set the new password. The pre('save') hook in User.js will automatically hash it!
+            user.password = newPassword;
         }
 
-        const updatedUser = await User.findByIdAndUpdate(
-            req.params.id,
-            updateData,
-            { new: true }
-        ).select('-password'); // Return the updated user without the password
+        // 3. Update standard fields
+        user.email = email || user.email;
+        user.phone = phone || user.phone;
+        user.address = address || user.address;
 
-        if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+        // 4. Update image if a new one was uploaded
+        if (req.file) {
+            user.profileImage = req.file.secure_url || req.file.url || req.file.path;
+            console.log("Uploaded Image URL:", user.profileImage);
+        }
+
+        // 5. Save the user (This triggers the password hashing safely!)
+        await user.save();
+
+        // 6. Fetch the updated user without sending the password hash back to the frontend
+        const updatedUser = await User.findById(user._id).select('-password');
 
         res.json(updatedUser);
     } catch (error) {
