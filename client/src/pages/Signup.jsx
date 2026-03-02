@@ -9,19 +9,32 @@ export default function Signup() {
     email: '',
     phone: '',
     password: '',
-    role: 'user',
-    departmentId: ''
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      return setError('Passwords do not match. Please try again.');
+    }
+
+    setLoading(true);
+
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
-      await axios.post(`${API_URL}/api/auth/register`, formData);
+
+      const submitData = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password
+      };
+
+      await axios.post(`${API_URL}/api/auth/register`, submitData);
       navigate('/login');
     } catch (err) {
       setError(err.response?.data?.message || 'Signup failed');
@@ -31,7 +44,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-[#101214] px-6 transition-colors duration-300">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-[#101214] px-6 py-12 transition-colors duration-300">
       <div className="w-full max-w-md space-y-8">
 
         <div className="text-center">
@@ -40,8 +53,8 @@ export default function Signup() {
         </div>
 
         <div className="rounded-2xl bg-white dark:bg-[#16181c] p-8 shadow-xl dark:shadow-none border border-gray-100 dark:border-gray-800">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-center text-sm text-red-600 dark:text-red-400">{error}</div>}
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            {error && <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-center text-sm font-bold text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800">{error}</div>}
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Full Name</label>
@@ -50,11 +63,11 @@ export default function Signup() {
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Email</label>
-              <input type="email" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="ranger@wildroute.com" onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+              <input type="email" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="explorer@wildroute.com" onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Phone Number (Emergency Contact)</label>
+              <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Mobile Number</label>
               <input type="tel" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="+94 77 123 4567" onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
             </div>
 
@@ -63,7 +76,12 @@ export default function Signup() {
               <input type="password" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="••••••••" onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
             </div>
 
-            <button type="submit" disabled={loading} className="w-full rounded-xl bg-[#19664d] py-3.5 font-bold text-white shadow-lg shadow-[#19664d]/20 hover:bg-[#14523d] transition-transform active:scale-[0.98] disabled:opacity-50">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Confirm Password</label>
+              <input type="password" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="••••••••" onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} />
+            </div>
+
+            <button type="submit" disabled={loading} className="w-full rounded-xl bg-[#19664d] py-3.5 mt-2 font-bold text-white shadow-lg shadow-[#19664d]/20 hover:bg-[#14523d] transition-transform active:scale-[0.98] disabled:opacity-50">
               {loading ? 'Creating Account...' : 'Sign Up'}
             </button>
           </form>
