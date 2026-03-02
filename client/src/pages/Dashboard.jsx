@@ -206,7 +206,7 @@ const Dashboard = () => {
                     {/* Danger Circle - Red for Verified, Orange for Unverified */}
                     <Circle
                       center={[lat, lng]}
-                      radius={500}
+                      radius={2000} // Matches the 2km alarm radius
                       pathOptions={{
                         color: isVerified ? '#ef4444' : '#f97316',
                         fillColor: isVerified ? '#ef4444' : '#f97316',

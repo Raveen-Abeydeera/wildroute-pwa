@@ -264,7 +264,7 @@ const DriveMode = () => {
                   </Marker>
                   <Circle
                     center={[lat, lng]}
-                    radius={500}
+                    radius={2000} // Matches the 2km alarm radius
                     pathOptions={{ color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.3, weight: 0 }}
                   />
                 </React.Fragment>
