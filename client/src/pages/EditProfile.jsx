@@ -73,17 +73,22 @@ export default function EditProfile() {
             submitData.append('phone', formData.phone);
             submitData.append('address', formData.address);
 
+            // --- NEW: Safely append passwords if the user typed them ---
+            if (formData.currentPassword && formData.newPassword) {
+                submitData.append('currentPassword', formData.currentPassword);
+                submitData.append('newPassword', formData.newPassword);
+            }
+
             if (imageFile) {
                 submitData.append('profileImage', imageFile);
             }
 
-            // Send to backend (use _id or id depending on your DB)
             const userId = storedUser._id || storedUser.id;
             const res = await axios.put(`${API_URL}/api/users/${userId}`, submitData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            // Update the local storage with the NEW image URL so the dashboard sees it!
+            // Update the local storage
             localStorage.setItem('user', JSON.stringify(res.data));
 
             setLoading(false);
@@ -91,7 +96,8 @@ export default function EditProfile() {
         } catch (error) {
             console.error("Update failed", error);
             setLoading(false);
-            alert("Failed to update profile.");
+            // NEW: Show the exact error from the backend if password is wrong
+            alert(error.response?.data?.message || "Failed to update profile.");
         }
     };
 
