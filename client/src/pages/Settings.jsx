@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext'; // <--- Import Hook
+import { useTheme } from '../context/ThemeContext';
 
 export default function Settings() {
     const navigate = useNavigate();
-    const { theme, toggleTheme } = useTheme(); // <--- Get Theme State
+    const { theme, toggleTheme } = useTheme();
 
     // Local toggles
     const [pushEnabled, setPushEnabled] = useState(true);
-    const [alertsEnabled, setAlertsEnabled] = useState(true);
 
     const handleLogout = () => {
         const confirmLogout = window.confirm("Are you sure you want to sign out?");
@@ -18,8 +17,6 @@ export default function Settings() {
             navigate('/login');
         }
     };
-
-    const user = JSON.parse(localStorage.getItem('user')) || { fullName: 'Ranger', role: 'Operative' };
 
     return (
         <div className="min-h-screen w-full bg-[#f0f2f5] dark:bg-[#0e191b] font-sans text-[#1a535b] dark:text-white select-none transition-colors duration-300">
@@ -48,8 +45,6 @@ export default function Settings() {
                         Display
                     </h3>
                     <div className="bg-white dark:bg-[#162527]/80 backdrop-blur-md border border-gray-200 dark:border-[#2a3f41]/30 rounded-xl overflow-hidden">
-
-                        {/* DARK MODE SWITCH */}
                         <div className="flex items-center gap-4 px-4 py-4 justify-between">
                             <div className="flex items-center gap-4">
                                 <div className={`flex items-center justify-center rounded-lg shrink-0 size-10 ${theme === 'dark' ? 'bg-purple-500/10 text-purple-400' : 'bg-yellow-500/10 text-yellow-600'}`}>
@@ -64,8 +59,6 @@ export default function Settings() {
                                     </p>
                                 </div>
                             </div>
-
-                            {/* THE TOGGLE BUTTON */}
                             <div
                                 onClick={toggleTheme}
                                 className={`w-12 h-7 rounded-full p-1 cursor-pointer transition-colors duration-300 ${theme === 'dark' ? 'bg-[#1a535b]' : 'bg-gray-300'}`}
@@ -73,21 +66,19 @@ export default function Settings() {
                                 <div className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ${theme === 'dark' ? 'translate-x-5' : 'translate-x-0'}`}></div>
                             </div>
                         </div>
-
                     </div>
                 </section>
 
-                {/* ... (Existing Alert Preferences) ... */}
+                {/* ALERT PREFERENCES */}
                 <section className="space-y-3">
                     <h3 className="text-xs font-bold opacity-60 uppercase tracking-[0.15em] px-2 flex items-center gap-2">
                         <span className="material-symbols-outlined text-sm">sensors</span>
                         Alert Preferences
                     </h3>
                     <div className="bg-white dark:bg-[#162527]/80 backdrop-blur-md border border-gray-200 dark:border-[#2a3f41]/30 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-[#2a3f41]/20">
-                        {/* Push Toggle */}
                         <div className="flex items-center gap-4 px-4 py-4 justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="text-[#1a535b] bg-[#1a535b]/10 flex items-center justify-center rounded-lg shrink-0 size-10">
+                                <div className="text-[#1a535b] dark:text-[#9bbbbf] bg-[#1a535b]/10 dark:bg-white/5 flex items-center justify-center rounded-lg shrink-0 size-10">
                                     <span className="material-symbols-outlined">notifications</span>
                                 </div>
                                 <p className="font-medium">Push Notifications</p>
@@ -102,10 +93,63 @@ export default function Settings() {
                     </div>
                 </section>
 
+                {/* LEGAL & ABOUT (NEW SECTION) */}
+                <section className="space-y-3">
+                    <h3 className="text-xs font-bold opacity-60 uppercase tracking-[0.15em] px-2 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">gavel</span>
+                        Legal & About
+                    </h3>
+                    <div className="bg-white dark:bg-[#162527]/80 backdrop-blur-md border border-gray-200 dark:border-[#2a3f41]/30 rounded-xl overflow-hidden flex flex-col divide-y divide-gray-100 dark:divide-[#2a3f41]/20">
+
+                        {/* Terms Button */}
+                        <button
+                            onClick={() => navigate('/terms')}
+                            className="flex items-center gap-4 px-4 py-4 justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="text-blue-500 bg-blue-500/10 flex items-center justify-center rounded-lg shrink-0 size-10">
+                                    <span className="material-symbols-outlined">description</span>
+                                </div>
+                                <p className="font-medium text-[#1a535b] dark:text-white">Terms & Conditions</p>
+                            </div>
+                            <span className="material-symbols-outlined text-gray-400 dark:text-gray-500">chevron_right</span>
+                        </button>
+
+                        {/* Privacy Button */}
+                        <button
+                            onClick={() => navigate('/privacy')}
+                            className="flex items-center gap-4 px-4 py-4 justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="text-green-500 bg-green-500/10 flex items-center justify-center rounded-lg shrink-0 size-10">
+                                    <span className="material-symbols-outlined">shield</span>
+                                </div>
+                                <p className="font-medium text-[#1a535b] dark:text-white">Privacy Policy</p>
+                            </div>
+                            <span className="material-symbols-outlined text-gray-400 dark:text-gray-500">chevron_right</span>
+                        </button>
+
+                        {/* About Button */}
+                        <button
+                            onClick={() => navigate('/about')}
+                            className="flex items-center gap-4 px-4 py-4 justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="text-orange-500 bg-orange-500/10 flex items-center justify-center rounded-lg shrink-0 size-10">
+                                    <span className="material-symbols-outlined">info</span>
+                                </div>
+                                <p className="font-medium text-[#1a535b] dark:text-white">About WildRoute</p>
+                            </div>
+                            <span className="material-symbols-outlined text-gray-400 dark:text-gray-500">chevron_right</span>
+                        </button>
+
+                    </div>
+                </section>
+
                 {/* Logout */}
                 <button
                     onClick={handleLogout}
-                    className="w-full mt-4 bg-white dark:bg-[#162527]/80 backdrop-blur-md border border-red-200 dark:border-red-900/30 text-red-500 dark:text-red-400 py-4 rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-red-50 transition-colors"
+                    className="w-full mt-4 bg-white dark:bg-[#162527]/80 backdrop-blur-md border border-red-200 dark:border-red-900/30 text-red-500 dark:text-red-400 py-4 rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
                 >
                     Sign Out Protocol
                 </button>
