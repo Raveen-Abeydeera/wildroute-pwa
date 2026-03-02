@@ -17,9 +17,8 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: false,
-    unique: true,
-    sparse: true
+    required: true, // Now it is mandatory!
+    unique: true    // Ensures no two accounts share a number
   },
   password: {
     type: String,
@@ -77,10 +76,6 @@ const userSchema = new mongoose.Schema({
   },
 
   // --- Profile Editable Fields ---
-  phone: {
-    type: String,
-    default: ''
-  },
   address: {
     type: String,
     default: ''
