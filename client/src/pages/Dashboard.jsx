@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, Polyline } from 'react-leaflet';
 import { useTheme } from '../context/ThemeContext';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -53,10 +53,14 @@ const Dashboard = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [sightings, setSightings] = useState([]); // State for live sightings
 
-  // Mock Risk Zones (Static Corridors)
+  // Historical Risk Zones
   const [riskZones] = useState([
-    { id: 1, name: "Elephant Corridor A", lat: 7.957, lng: 80.760, radius: 1000 },
-    { id: 2, name: "Water Hole Activity", lat: 7.965, lng: 80.765, radius: 800 }
+    { id: 'z1', name: "Buttala–Kataragama Road (B35)", lat: 6.5500, lng: 81.3000, radius: 10000 },
+    { id: 'z2', name: "Habarana–Minneriya–Kaudulla", lat: 8.0360, lng: 80.8350, radius: 8000 },
+    { id: 'z3', name: "Yala National Park Vicinity", lat: 6.3750, lng: 81.5200, radius: 12000 },
+    { id: 'z4', name: "Trincomalee Road (via Habarana)", lat: 8.1500, lng: 80.9500, radius: 6000 },
+    { id: 'z5', name: "Udawalawe & Lunugamwehera", lat: 6.4670, lng: 80.9500, radius: 9000 },
+    { id: 'z6', name: "Ampara HEC Hotspot", lat: 7.2800, lng: 81.6700, radius: 10000 },
   ]);
 
   useEffect(() => {

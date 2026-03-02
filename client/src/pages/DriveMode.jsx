@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, Polyline } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
@@ -43,6 +43,17 @@ function RecenterMap({ lat, lng }) {
   }, [lat, lng, map]);
   return null;
 }
+
+// --- STATIC HIGH-RISK CORRIDORS ---
+// We define these on the frontend so alarms work even if the phone loses internet connection in the jungle!
+const STATIC_ZONES = [
+  { id: 'z1', name: "Buttala–Kataragama Road (B35)", lat: 6.5500, lng: 81.3000, radius: 10000 },
+  { id: 'z2', name: "Habarana–Minneriya–Kaudulla", lat: 8.0360, lng: 80.8350, radius: 8000 },
+  { id: 'z3', name: "Yala National Park Vicinity", lat: 6.3750, lng: 81.5200, radius: 12000 },
+  { id: 'z4', name: "Trincomalee Road (via Habarana)", lat: 8.1500, lng: 80.9500, radius: 6000 },
+  { id: 'z5', name: "Udawalawe & Lunugamwehera", lat: 6.4670, lng: 80.9500, radius: 9000 },
+  { id: 'z6', name: "Ampara HEC Hotspot", lat: 7.2800, lng: 81.6700, radius: 10000 },
+];
 
 const DriveMode = () => {
   const navigate = useNavigate();
@@ -127,33 +138,46 @@ const DriveMode = () => {
       setGpsError(null);
 
       try {
-        // Ping our new Math Brain endpoint
+        // 1. Fetch DYNAMIC live alerts from the backend
         const res = await axios.get(`${API_URL}/api/sightings/nearby?lng=${longitude}&lat=${latitude}`);
+        const dynamicAlerts = res.data;
 
-        if (res.data.length > 0) {
-          setDangerAlerts(res.data); // Update the UI to show a red warning
+        // 2. Calculate STATIC corridor alerts directly on the phone (Offline-proof!)
+        const userLatLng = L.latLng(latitude, longitude);
+        const triggeredStaticZones = STATIC_ZONES.filter(zone => {
+          return userLatLng.distanceTo(L.latLng(zone.lat, zone.lng)) <= zone.radius;
+        });
 
-          // --- 3. PLAY THE ALARM ---
+        // 3. Combine both threats
+        const totalThreats = [...dynamicAlerts, ...triggeredStaticZones];
+
+        if (totalThreats.length > 0) {
+          setDangerAlerts(totalThreats); // Trigger the red UI warning
+
+          // --- PLAY THE ALARM ---
           if (alarmAudio.current && alarmAudio.current.paused) {
-            // .catch is needed because browsers sometimes block audio if the user hasn't tapped the screen yet
-            alarmAudio.current.play().catch(e => console.log("Audio blocked by browser:", e));
+            alarmAudio.current.play().catch(e => console.log("Audio blocked:", e));
           }
 
-          // Trigger an actual system notification on their phone
+          // Trigger System Push Notification
           if (Notification.permission === 'granted') {
+            const warningMessage = dynamicAlerts.length > 0
+              ? `WARNING: You are within 2km of a LIVE elephant sighting!`
+              : `CAUTION: You have entered a high-risk historical elephant corridor.`;
+
             new Notification("CRITICAL ALERT: WildRoute", {
-              body: `WARNING: You are within 2km of ${res.data.length} active elephant sighting(s). Proceed with extreme caution.`,
+              body: warningMessage,
               icon: "/pwa-192x192.png",
-              vibrate: [200, 100, 200, 100, 200] // Makes Android phones vibrate aggressively
+              vibrate: [200, 100, 200, 100, 200]
             });
           }
         } else {
-          setDangerAlerts([]); // Clear warnings if they drove out of the 2km radius
+          setDangerAlerts([]); // Clear UI warnings
 
-          // --- 4. STOP THE ALARM WHEN SAFE ---
+          // --- STOP THE ALARM WHEN SAFE ---
           if (alarmAudio.current && !alarmAudio.current.paused) {
             alarmAudio.current.pause();
-            alarmAudio.current.currentTime = 0; // Reset to beginning
+            alarmAudio.current.currentTime = 0;
           }
         }
       } catch (error) {
@@ -248,6 +272,16 @@ const DriveMode = () => {
             <Marker position={[userLocation.lat, userLocation.lng]} icon={vehicleIcon}>
               <Popup>You</Popup>
             </Marker>
+
+            {/* Render Static Historical Corridors */}
+            {STATIC_ZONES.map(zone => (
+              <Circle
+                key={zone.id}
+                center={[zone.lat, zone.lng]}
+                radius={zone.radius}
+                pathOptions={{ color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.1, weight: 2, dashArray: '5, 5' }}
+              />
+            ))}
 
             {/* Render Live Sightings */}
             {sightings.map(sighting => {
