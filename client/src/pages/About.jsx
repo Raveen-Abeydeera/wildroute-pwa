@@ -44,7 +44,7 @@ export default function About() {
                     <section>
                         <h2 className="font-bold text-lg mb-2">Support</h2>
                         <p className="text-sm opacity-80 leading-relaxed">
-                            For support or system inquiries, please reach out to the Department of Wildlife Conservation or contact the development team at <a href="mailto:wildroute.2026@gmail.com" className="text-blue-500 font-bold hover:underline">support@wildroute.lk</a>.
+                            For support or system inquiries, please reach out to the Department of Wildlife Conservation or contact the development team at <a href="mailto:wildroute.2026@gmail.com" className="text-blue-500 font-bold hover:underline">wildroute.2026@gmail.com</a>.
                         </p>
                     </section>
                 </div>
@@ -56,4 +56,5 @@ export default function About() {
         </div>
     );
 }
+
 
