@@ -155,6 +155,11 @@ router.post('/:id/confirm', async (req, res) => {
     const sighting = await Sighting.findById(req.params.id);
     if (!sighting) return res.status(404).json({ message: 'Sighting not found' });
 
+    // --- NEW: Block the author from voting on their own report ---
+    if (sighting.user.toString() === userId) {
+      return res.status(400).json({ message: "You cannot confirm your own sighting." });
+    }
+
     // Prevent double voting
     if (!sighting.confirmations.includes(userId)) {
       sighting.confirmations.push(userId);
@@ -175,6 +180,11 @@ router.post('/:id/safe', async (req, res) => {
     const { userId } = req.body;
     const sighting = await Sighting.findById(req.params.id);
     if (!sighting) return res.status(404).json({ message: 'Sighting not found' });
+
+    // --- NEW: Block the author from clearing their own report early ---
+    if (sighting.user.toString() === userId) {
+      return res.status(400).json({ message: "You cannot mark your own sighting as safe." });
+    }
 
     if (!sighting.safeVotes.includes(userId)) {
       sighting.safeVotes.push(userId);
