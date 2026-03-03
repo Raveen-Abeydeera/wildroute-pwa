@@ -1,5 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix Default Leaflet Icons
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Custom Tactical Icon (Orange for Pending)
+const getSightingIcon = () => {
+    return new L.DivIcon({
+        className: 'sighting-marker',
+        html: `<div class="w-6 h-6 bg-orange-500 rounded-full border-2 border-white shadow-[0_0_15px_rgba(249,115,22,0.8)] flex items-center justify-center text-white text-[10px] font-bold animate-pulse">!</div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+    });
+};
 
 export default function RangerDashboard() {
     const navigate = useNavigate();
@@ -173,10 +198,84 @@ export default function RangerDashboard() {
     );
 
     const RenderMap = () => (
-        <div className="flex flex-col items-center justify-center h-full text-[#95A5A6] opacity-70">
-            <span className="material-symbols-outlined text-6xl mb-4 text-[#2ECC71]">satellite_alt</span>
-            <h2 className="text-xl font-bold text-white mb-2">Tactical Live Map</h2>
-            <p className="text-sm max-w-xs text-center">Interactive tracking layer will render here. Toggle heatmap and active zones.</p>
+        <div className="h-[calc(100vh-160px)] w-full rounded-2xl overflow-hidden border border-[#2C3E50] relative z-0 shadow-lg">
+            <MapContainer
+                center={[7.8731, 80.7718]} // Centers perfectly on Sri Lanka
+                zoom={7}
+                className="w-full h-full"
+                zoomControl={false}
+            >
+                {/* Dark Tactical Map Tiles */}
+                <TileLayer
+                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                    attribution='&copy; OpenStreetMap &copy; CARTO'
+                />
+
+                {/* Plot all pending reports */}
+                {pendingReports.map(report => {
+                    if (!report.location || !report.location.coordinates) return null;
+                    const [lng, lat] = report.location.coordinates;
+
+                    // Parse the description safely for the tiny popup
+                    const displayDesc = report.description && report.description.includes('Notes:')
+                        ? report.description.split('Notes:')[1].trim()
+                        : (report.description || "Reported Sighting");
+
+                    return (
+                        <Marker key={`map-${report._id}`} position={[lat, lng]} icon={getSightingIcon()}>
+                            <Popup className="tactical-popup">
+                                <div className="text-black flex flex-col min-w-[180px] p-1">
+                                    {/* Map Popup Evidence Image */}
+                                    {report.imageUrl && (
+                                        <img src={report.imageUrl} alt="Evidence" className="w-full h-24 object-cover rounded-md mb-2 bg-gray-200" />
+                                    )}
+
+                                    <strong className="text-sm leading-tight mb-1 truncate w-full block">{displayDesc}</strong>
+                                    <p className="text-xs text-gray-600 font-medium leading-snug">Rep: {report.user?.fullName || 'Scout'}</p>
+
+                                    {/* Clickable Phone Number inside the map! */}
+                                    {report.user?.phone && (
+                                        <a href={`tel:${report.user.phone}`} className="text-xs text-[#3498DB] font-bold my-1 hover:underline">
+                                            📞 {report.user.phone}
+                                        </a>
+                                    )}
+
+                                    {/* Action Buttons directly on the map */}
+                                    <div className="flex gap-2 w-full mt-2">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleVerifyStatus(report._id, 'verified'); }}
+                                            className="flex-1 bg-[#2ECC71] text-[#121212] text-[10px] font-bold py-2 rounded shadow-sm hover:opacity-80 transition-opacity"
+                                        >
+                                            VERIFY
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleVerifyStatus(report._id, 'rejected'); }}
+                                            className="flex-1 bg-[#E74C3C] text-white text-[10px] font-bold py-2 rounded shadow-sm hover:opacity-80 transition-opacity"
+                                        >
+                                            REJECT
+                                        </button>
+                                    </div>
+                                </div>
+                            </Popup>
+
+                            {/* Visual 2km Danger Zone */}
+                            <Circle
+                                center={[lat, lng]}
+                                radius={2000}
+                                pathOptions={{ color: '#f39c12', fillColor: '#f39c12', fillOpacity: 0.15, weight: 1, dashArray: '4, 4' }}
+                            />
+                        </Marker>
+                    );
+                })}
+            </MapContainer>
+
+            {/* Map UI Overlay */}
+            <div className="absolute top-4 left-4 z-[400] bg-[#121212]/80 backdrop-blur-md border border-[#2C3E50] px-3 py-1.5 rounded-full shadow-lg">
+                <span className="text-xs font-bold text-[#2ECC71] tracking-widest uppercase flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#2ECC71] animate-pulse"></span>
+                    Live Triage Layer
+                </span>
+            </div>
         </div>
     );
 
