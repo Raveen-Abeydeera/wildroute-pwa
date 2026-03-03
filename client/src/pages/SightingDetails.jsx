@@ -32,7 +32,8 @@ export default function SightingDetails() {
             setSighting(res.data);
             alert("Thanks! The warning has been extended for other drivers.");
         } catch (err) {
-            console.error(err);
+            // NEW: Show the actual backend error!
+            alert(err.response?.data?.message || "Failed to confirm sighting.");
         }
     };
 
@@ -47,7 +48,8 @@ export default function SightingDetails() {
                 alert(`Vote counted! ${3 - res.data.safeVotes.length} more votes needed to clear this alert.`);
             }
         } catch (err) {
-            console.error(err);
+            // NEW: Show the actual backend error!
+            alert(err.response?.data?.message || "Failed to submit vote.");
         }
     };
 
@@ -131,20 +133,28 @@ export default function SightingDetails() {
                 <div className="px-4 py-6 flex flex-col gap-3">
                     <button
                         onClick={handleConfirm}
-                        disabled={sighting.confirmations?.includes(userId)}
-                        className={`w-full font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors ${sighting.confirmations?.includes(userId) ? 'bg-gray-500 text-white cursor-not-allowed' : 'bg-[#2ecc70] hover:bg-[#2ecc70]/90 text-white'}`}
+                        disabled={sighting.confirmations?.includes(userId) || sighting.user?._id === userId}
+                        className={`w-full font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors ${sighting.user?._id === userId ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed' :
+                                sighting.confirmations?.includes(userId) ? 'bg-gray-500 text-white cursor-not-allowed' :
+                                    'bg-[#2ecc70] hover:bg-[#2ecc70]/90 text-white'
+                            }`}
                     >
                         <span className="material-symbols-outlined">visibility</span>
-                        {sighting.confirmations?.includes(userId) ? 'You Confirmed This' : 'I See It Too'}
+                        {sighting.user?._id === userId ? 'Your Report' :
+                            sighting.confirmations?.includes(userId) ? 'You Confirmed This' : 'I See It Too'}
                     </button>
 
                     <button
                         onClick={handleSafe}
-                        disabled={sighting.safeVotes?.includes(userId)}
-                        className={`w-full font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors border ${sighting.safeVotes?.includes(userId) ? 'bg-gray-500/10 text-gray-400 border-gray-500/30 cursor-not-allowed' : 'bg-[#2ecc70]/10 hover:bg-[#2ecc70]/20 text-[#2ecc70] border-[#2ecc70]/30'}`}
+                        disabled={sighting.safeVotes?.includes(userId) || sighting.user?._id === userId}
+                        className={`w-full font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors border ${sighting.user?._id === userId ? 'bg-gray-200/10 dark:bg-gray-800/50 text-gray-400 border-gray-400/20 cursor-not-allowed' :
+                                sighting.safeVotes?.includes(userId) ? 'bg-gray-500/10 text-gray-400 border-gray-500/30 cursor-not-allowed' :
+                                    'bg-[#2ecc70]/10 hover:bg-[#2ecc70]/20 text-[#2ecc70] border-[#2ecc70]/30'
+                            }`}
                     >
                         <span className="material-symbols-outlined">check_circle</span>
-                        {sighting.safeVotes?.includes(userId) ? 'Voted Safe' : 'Safe Now'}
+                        {sighting.user?._id === userId ? 'Author Cannot Vote' :
+                            sighting.safeVotes?.includes(userId) ? 'Voted Safe' : 'Safe Now'}
                     </button>
                 </div>
             </div>
