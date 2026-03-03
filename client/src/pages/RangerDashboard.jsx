@@ -21,7 +21,7 @@ const getSightingIcon = (status) => {
     const isVerified = status === 'verified';
     return new L.DivIcon({
         className: 'sighting-marker',
-        html: `<div class="w-6 h-6 ${isVerified ? 'bg-red-600' : 'bg-orange-500'} rounded-full border-2 border-white shadow-[0_0_15px_${isVerified ? 'rgba(239,68,68,0.8)' : 'rgba(249,115,22,0.8)'}] flex items-center justify-center text-white text-[10px] font-bold animate-pulse">!</div>`,
+        html: `<div class="w-6 h-6 ${isVerified ? 'bg-red-600' : 'bg-orange-500'} rounded-full border-2 border-white shadow-[0_0_15px_${isVerified ? 'rgba(239,68,68,0.8)' : 'rgba(249,115,22,0.8)'}] flex items-center justify-center text-white text-[10px] font-bold ${isVerified ? '' : 'animate-pulse'}">!</div>`,
         iconSize: [24, 24],
         iconAnchor: [12, 12],
     });
@@ -32,7 +32,7 @@ export default function RangerDashboard() {
     const API_URL = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
     const [rangerName, setRangerName] = useState('');
     const [pendingReports, setPendingReports] = useState([]);
-    const [mapReports, setMapReports] = useState([]); // NEW: Tracks BOTH verified and pending for map
+    const [mapSightings, setMapSightings] = useState([]); // NEW: State for the Map
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('triage');
 
@@ -44,24 +44,35 @@ export default function RangerDashboard() {
         if (parsedUser.role !== 'ranger') return navigate('/dashboard');
 
         setRangerName(parsedUser.fullName || parsedUser.name || 'Officer');
-        fetchDashboardData();
+        fetchPendingReports();
+        fetchMapSightings(); // NEW: Fetch map data on load
     }, [navigate]);
 
-    const fetchDashboardData = async () => {
+    const fetchPendingReports = async () => {
         try {
-            // Fetch both Pending (for Triage list) AND Active Within 4 Hours (for Map plot)
-            const [pendingRes, mapRes] = await Promise.all([
-                fetch(`${API_URL}/api/sightings/pending`),
-                fetch(`${API_URL}/api/sightings`)
-            ]);
-
-            if (pendingRes.ok) setPendingReports(await pendingRes.json());
-            if (mapRes.ok) setMapReports(await mapRes.json());
-
+            const res = await fetch(`${API_URL}/api/sightings/pending`);
+            if (res.ok) {
+                const data = await res.json();
+                setPendingReports(data);
+            }
         } catch (error) {
-            console.error("Failed to fetch reports:", error);
+            console.error("Failed to fetch pending reports:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // NEW: Fetch all active sightings (Pending + Verified) for the Tactical Map
+    const fetchMapSightings = async () => {
+        try {
+            // This endpoint gets everything active within the last 4 hours
+            const res = await fetch(`${API_URL}/api/sightings`);
+            if (res.ok) {
+                const data = await res.json();
+                setMapSightings(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch map sightings:", error);
         }
     };
 
@@ -74,22 +85,18 @@ export default function RangerDashboard() {
             });
 
             if (res.ok) {
-                const updatedReport = await res.json();
-
-                // 1. Remove from Pending Triage List
+                // 1. Always remove it from the Triage list so it clears the queue
                 setPendingReports((prev) => prev.filter((report) => report._id !== sightingId));
 
-                // 2. Either update the Map List or remove if rejected
-                if (newStatus === 'rejected') {
-                    setMapReports(prev => prev.filter(r => r._id !== sightingId));
-                } else {
-                    setMapReports(prev => {
-                        const exists = prev.find(r => r._id === sightingId);
-                        return exists
-                            ? prev.map(r => r._id === sightingId ? updatedReport : r)
-                            : [updatedReport, ...prev];
-                    });
-                }
+                // 2. Safely update the Tactical Map list
+                setMapSightings((prev) => {
+                    if (newStatus === 'rejected') {
+                        // If rejected, remove it entirely from the map
+                        return prev.filter(report => report._id !== sightingId);
+                    }
+                    // If verified, keep it on the map but change its status to 'verified'
+                    return prev.map(report => report._id === sightingId ? { ...report, status: newStatus } : report);
+                });
             } else {
                 alert("Failed to update sighting status.");
             }
@@ -231,24 +238,22 @@ export default function RangerDashboard() {
     const RenderMap = () => (
         <div className="h-[calc(100vh-160px)] w-full rounded-2xl overflow-hidden border border-[#2C3E50] relative z-0 shadow-lg">
             <MapContainer
-                center={[7.8731, 80.7718]} // Centers perfectly on Sri Lanka
+                center={[7.8731, 80.7718]}
                 zoom={7}
                 className="w-full h-full"
                 zoomControl={false}
             >
-                {/* Standard Light Map Tiles */}
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; OpenStreetMap'
                 />
 
-                {/* Plot all active map reports */}
-                {mapReports.map(report => {
+                {/* Plot ALL active map sightings (Pending & Verified) */}
+                {mapSightings.map(report => {
                     if (!report.location || !report.location.coordinates) return null;
                     const [lng, lat] = report.location.coordinates;
                     const isVerified = report.status === 'verified';
 
-                    // Parse the description safely for the tiny popup
                     const displayDesc = report.description && report.description.includes('Notes:')
                         ? report.description.split('Notes:')[1].trim()
                         : (report.description || "Reported Sighting");
@@ -257,27 +262,30 @@ export default function RangerDashboard() {
                         <Marker key={`map-${report._id}`} position={[lat, lng]} icon={getSightingIcon(report.status)}>
                             <Popup className="tactical-popup">
                                 <div className="text-black flex flex-col min-w-[180px] p-1">
-                                    {/* Map Popup Evidence Image */}
                                     {report.imageUrl && (
                                         <img src={report.imageUrl} alt="Evidence" className="w-full h-24 object-cover rounded-md mb-2 bg-gray-200" />
                                     )}
 
                                     <strong className="text-sm leading-tight mb-1 truncate w-full block">{displayDesc}</strong>
+                                    <p className="text-xs text-gray-600 font-medium leading-snug mb-1">Rep: {report.user?.fullName || 'Scout'}</p>
 
                                     {isVerified ? (
-                                        <div className="text-[10px] font-bold text-red-700 bg-red-100/50 px-2 py-0.5 rounded border border-red-300 w-max mb-1">✓ VERIFIED ZONE</div>
+                                        <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded border border-green-300 w-max mb-1">
+                                            ✓ Verified Active
+                                        </span>
                                     ) : (
-                                        <p className="text-xs text-gray-600 font-medium leading-snug">Rep: {report.user?.fullName || 'Scout'}</p>
+                                        <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded border border-orange-300 w-max mb-1">
+                                            ⚠ Pending Verification
+                                        </span>
                                     )}
 
-                                    {/* Clickable Phone Number inside the map! */}
                                     {report.user?.phone && (
-                                        <a href={`tel:${report.user.phone}`} className="text-xs text-[#3498DB] font-bold my-1 hover:underline">
+                                        <a href={`tel:${report.user.phone}`} className="text-xs text-[#3498DB] font-bold my-1 hover:underline block">
                                             📞 {report.user.phone}
                                         </a>
                                     )}
 
-                                    {/* Action Buttons directly on the map - Only if pending */}
+                                    {/* Only show Action Buttons if the report is still Pending! */}
                                     {report.status === 'pending' && (
                                         <div className="flex gap-2 w-full mt-2">
                                             <button
@@ -297,13 +305,13 @@ export default function RangerDashboard() {
                                 </div>
                             </Popup>
 
-                            {/* Visual 2km Danger Zone */}
+                            {/* Visual 2km Danger Zone - Changes color based on verification */}
                             <Circle
                                 center={[lat, lng]}
                                 radius={2000}
                                 pathOptions={{
-                                    color: isVerified ? '#e74c3c' : '#f39c12',
-                                    fillColor: isVerified ? '#e74c3c' : '#f39c12',
+                                    color: isVerified ? '#ef4444' : '#f39c12',
+                                    fillColor: isVerified ? '#ef4444' : '#f39c12',
                                     fillOpacity: 0.15,
                                     weight: 1,
                                     dashArray: '4, 4'
@@ -314,11 +322,10 @@ export default function RangerDashboard() {
                 })}
             </MapContainer>
 
-            {/* Map UI Overlay */}
             <div className="absolute top-4 left-4 z-[400] bg-[#121212]/80 backdrop-blur-md border border-[#2C3E50] px-3 py-1.5 rounded-full shadow-lg">
                 <span className="text-xs font-bold text-[#2ECC71] tracking-widest uppercase flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[#2ECC71] animate-pulse"></span>
-                    Live Triage Layer
+                    Tactical Live Map
                 </span>
             </div>
         </div>
