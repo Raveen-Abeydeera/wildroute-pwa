@@ -80,7 +80,7 @@ router.get('/', async (req, res) => {
     const sightings = await Sighting.find({
       status: { $in: ['verified', 'pending'] },
       createdAt: { $gte: fourHoursAgo }
-    }).populate('user', 'name');
+    }).populate('user', 'fullName phone'); // FIX: Ask for fullName and phone!
 
     res.json(sightings);
   } catch (error) {
@@ -94,7 +94,7 @@ router.get('/pending', async (req, res) => {
   try {
     const sightings = await Sighting.find({ status: 'pending' })
       .sort({ createdAt: -1 }) // Show newest first
-      // FIX: Request fullName and phone from the User database!
+      // FIX: Request fullName, phone, and points from the User database!
       .populate('user', 'fullName phone points');
     res.json(sightings);
   } catch (error) {
