@@ -205,10 +205,10 @@ export default function RangerDashboard() {
                 className="w-full h-full"
                 zoomControl={false}
             >
-                {/* Dark Tactical Map Tiles */}
+                {/* Standard Light Map Tiles */}
                 <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                    attribution='&copy; OpenStreetMap &copy; CARTO'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; OpenStreetMap'
                 />
 
                 {/* Plot all pending reports */}
