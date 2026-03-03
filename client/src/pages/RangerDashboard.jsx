@@ -248,55 +248,94 @@ export default function RangerDashboard() {
                     attribution='&copy; OpenStreetMap'
                 />
 
-                {/* Plot ALL active map sightings (Pending & Verified) */}
                 {mapSightings.map(report => {
                     if (!report.location || !report.location.coordinates) return null;
                     const [lng, lat] = report.location.coordinates;
                     const isVerified = report.status === 'verified';
 
-                    const displayDesc = report.description && report.description.includes('Notes:')
-                        ? report.description.split('Notes:')[1].trim()
-                        : (report.description || "Reported Sighting");
+                    // --- PARSING LOGIC FOR POPUP ---
+                    // Safely extract Count, Behavior, and Notes from the saved string
+                    let countStr = "Unknown";
+                    let behaviorStr = "Unknown";
+                    let notesStr = report.description || "No additional notes provided.";
+
+                    if (report.description && report.description.includes('|')) {
+                        const parts = report.description.split('|').map(p => p.trim());
+                        parts.forEach(part => {
+                            if (part.startsWith('Count:')) countStr = part.replace('Count:', '').trim();
+                            else if (part.startsWith('Behavior:')) behaviorStr = part.replace('Behavior:', '').trim();
+                            else if (part.startsWith('Notes:')) notesStr = part.replace('Notes:', '').trim();
+                        });
+                    }
+                    // -------------------------------
 
                     return (
                         <Marker key={`map-${report._id}`} position={[lat, lng]} icon={getSightingIcon(report.status)}>
                             <Popup className="tactical-popup">
-                                <div className="text-black flex flex-col min-w-[180px] p-1">
+                                <div className="text-black flex flex-col min-w-[200px] max-w-[250px] p-1">
+
+                                    {/* 1. Sighting Image */}
                                     {report.imageUrl && (
-                                        <img src={report.imageUrl} alt="Evidence" className="w-full h-24 object-cover rounded-md mb-2 bg-gray-200" />
+                                        <img src={report.imageUrl} alt="Evidence" className="w-full h-28 object-cover rounded-md mb-2 bg-gray-200 border border-gray-300 shadow-sm" />
                                     )}
 
-                                    <strong className="text-sm leading-tight mb-1 truncate w-full block">{displayDesc}</strong>
-                                    <p className="text-xs text-gray-600 font-medium leading-snug mb-1">Rep: {report.user?.fullName || 'Scout'}</p>
+                                    {/* 2. Reporter Details */}
+                                    <div className="bg-gray-100 p-2 rounded-md mb-2 border border-gray-200">
+                                        <p className="text-xs text-gray-800 font-bold flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-[14px] text-gray-500">person</span>
+                                            {report.user?.fullName || 'Anonymous Scout'}
+                                        </p>
+                                        {report.user?.phone && (
+                                            <a href={`tel:${report.user.phone}`} className="text-xs text-[#3498DB] font-bold mt-1 flex items-center gap-1.5 hover:underline w-max">
+                                                <span className="material-symbols-outlined text-[14px]">phone_in_talk</span>
+                                                {report.user.phone}
+                                            </a>
+                                        )}
+                                    </div>
 
+                                    {/* 3. Elephant Data Grid */}
+                                    <div className="grid grid-cols-2 gap-2 mb-2">
+                                        <div className="bg-orange-50 p-1.5 rounded border border-orange-100">
+                                            <span className="text-[9px] uppercase text-orange-600 font-bold block mb-0.5 tracking-wider">Count</span>
+                                            <span className="text-xs font-bold text-gray-800">{countStr}</span>
+                                        </div>
+                                        <div className="bg-orange-50 p-1.5 rounded border border-orange-100">
+                                            <span className="text-[9px] uppercase text-orange-600 font-bold block mb-0.5 tracking-wider">Behavior</span>
+                                            <span className="text-xs font-bold text-gray-800">{behaviorStr}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* 4. Notes Section */}
+                                    <div className="mb-3">
+                                        <span className="text-[9px] uppercase text-gray-500 font-bold block mb-0.5 tracking-wider">Notes / Description</span>
+                                        <p className="text-xs text-gray-700 leading-snug">{notesStr}</p>
+                                    </div>
+
+                                    {/* 5. Status Badge */}
                                     {isVerified ? (
-                                        <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded border border-green-300 w-max mb-1">
-                                            ✓ Verified Active
-                                        </span>
+                                        <div className="flex items-center justify-center gap-1 bg-green-100 text-green-700 py-1.5 rounded border border-green-300 mb-1 shadow-sm">
+                                            <span className="material-symbols-outlined text-[14px]">verified_user</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wide">Verified Active</span>
+                                        </div>
                                     ) : (
-                                        <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded border border-orange-300 w-max mb-1">
-                                            ⚠ Pending Verification
-                                        </span>
+                                        <div className="flex items-center justify-center gap-1 bg-orange-100 text-orange-700 py-1.5 rounded border border-orange-300 mb-1 shadow-sm">
+                                            <span className="material-symbols-outlined text-[14px]">pending_actions</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wide">Pending Verification</span>
+                                        </div>
                                     )}
 
-                                    {report.user?.phone && (
-                                        <a href={`tel:${report.user.phone}`} className="text-xs text-[#3498DB] font-bold my-1 hover:underline block">
-                                            📞 {report.user.phone}
-                                        </a>
-                                    )}
-
-                                    {/* Only show Action Buttons if the report is still Pending! */}
+                                    {/* 6. Action Buttons (Only if Pending) */}
                                     {report.status === 'pending' && (
                                         <div className="flex gap-2 w-full mt-2">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleVerifyStatus(report._id, 'verified'); }}
-                                                className="flex-1 bg-[#2ECC71] text-[#121212] text-[10px] font-bold py-2 rounded shadow-sm hover:opacity-80 transition-opacity"
+                                                className="flex-1 bg-[#2ECC71] text-[#121212] text-[10px] font-bold py-2.5 rounded shadow-sm hover:bg-[#27ae60] transition-colors"
                                             >
                                                 VERIFY
                                             </button>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleVerifyStatus(report._id, 'rejected'); }}
-                                                className="flex-1 bg-[#E74C3C] text-white text-[10px] font-bold py-2 rounded shadow-sm hover:opacity-80 transition-opacity"
+                                                className="flex-1 bg-[#E74C3C] text-white text-[10px] font-bold py-2.5 rounded shadow-sm hover:bg-[#c0392b] transition-colors"
                                             >
                                                 REJECT
                                             </button>
@@ -305,7 +344,7 @@ export default function RangerDashboard() {
                                 </div>
                             </Popup>
 
-                            {/* Visual 2km Danger Zone - Changes color based on verification */}
+                            {/* Visual 2km Danger Zone */}
                             <Circle
                                 center={[lat, lng]}
                                 radius={2000}
