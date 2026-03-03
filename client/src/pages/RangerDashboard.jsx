@@ -77,6 +77,16 @@ export default function RangerDashboard() {
         }
     };
 
+    const handleLogout = () => {
+        const confirmLogout = window.confirm("Are you sure you want to sign out of the Ranger Portal?");
+        if (confirmLogout) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('userInfo');
+            navigate('/login');
+        }
+    };
+
     // --- SUB-COMPONENTS FOR TABS --- //
 
     const RenderTriage = () => (
@@ -301,8 +311,9 @@ export default function RangerDashboard() {
             {/* Header / Top Bar */}
             <div className="sticky top-0 z-20 bg-[#121212]/95 backdrop-blur-md border-b border-[#2C3E50] px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => navigate('/profile')} className="text-[#ECF0F1] p-1 rounded-full hover:bg-[#2C3E50] transition-colors">
-                        <span className="material-symbols-outlined text-xl">person</span>
+                    {/* NEW: Sign Out Button (Replaced Profile Icon) */}
+                    <button onClick={handleLogout} className="text-[#E74C3C] p-1 rounded-full hover:bg-[#E74C3C]/20 transition-colors shadow-sm" title="Sign Out">
+                        <span className="material-symbols-outlined text-xl">logout</span>
                     </button>
                     <div>
                         <h1 className="text-lg font-bold tracking-tight text-[#ECF0F1]">Command Center</h1>
