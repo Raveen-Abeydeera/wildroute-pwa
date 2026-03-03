@@ -94,7 +94,8 @@ router.get('/pending', async (req, res) => {
   try {
     const sightings = await Sighting.find({ status: 'pending' })
       .sort({ createdAt: -1 }) // Show newest first
-      .populate('user', 'name points'); // Also fetch user points for "Trust Score"
+      // FIX: Request fullName and phone from the User database!
+      .populate('user', 'fullName phone points');
     res.json(sightings);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
