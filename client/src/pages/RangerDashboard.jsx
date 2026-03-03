@@ -16,11 +16,12 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// Custom Tactical Icon (Orange for Pending)
-const getSightingIcon = () => {
+// Custom Tactical Icon (Orange for Pending, Red for Verified)
+const getSightingIcon = (status) => {
+    const isVerified = status === 'verified';
     return new L.DivIcon({
         className: 'sighting-marker',
-        html: `<div class="w-6 h-6 bg-orange-500 rounded-full border-2 border-white shadow-[0_0_15px_rgba(249,115,22,0.8)] flex items-center justify-center text-white text-[10px] font-bold animate-pulse">!</div>`,
+        html: `<div class="w-6 h-6 ${isVerified ? 'bg-red-600' : 'bg-orange-500'} rounded-full border-2 border-white shadow-[0_0_15px_${isVerified ? 'rgba(239,68,68,0.8)' : 'rgba(249,115,22,0.8)'}] flex items-center justify-center text-white text-[10px] font-bold animate-pulse">!</div>`,
         iconSize: [24, 24],
         iconAnchor: [12, 12],
     });
@@ -31,8 +32,9 @@ export default function RangerDashboard() {
     const API_URL = import.meta.env.VITE_API_URL || 'https://wildroute-pwa.onrender.com';
     const [rangerName, setRangerName] = useState('');
     const [pendingReports, setPendingReports] = useState([]);
+    const [mapReports, setMapReports] = useState([]); // NEW: Tracks BOTH verified and pending for map
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('triage'); // 'triage', 'map', 'geofence', 'analytics'
+    const [activeTab, setActiveTab] = useState('triage');
 
     useEffect(() => {
         const userString = localStorage.getItem('user') || localStorage.getItem('userInfo');
@@ -42,18 +44,22 @@ export default function RangerDashboard() {
         if (parsedUser.role !== 'ranger') return navigate('/dashboard');
 
         setRangerName(parsedUser.fullName || parsedUser.name || 'Officer');
-        fetchPendingReports();
+        fetchDashboardData();
     }, [navigate]);
 
-    const fetchPendingReports = async () => {
+    const fetchDashboardData = async () => {
         try {
-            const res = await fetch(`${API_URL}/api/sightings/pending`);
-            if (res.ok) {
-                const data = await res.json();
-                setPendingReports(data);
-            }
+            // Fetch both Pending (for Triage list) AND Active Within 4 Hours (for Map plot)
+            const [pendingRes, mapRes] = await Promise.all([
+                fetch(`${API_URL}/api/sightings/pending`),
+                fetch(`${API_URL}/api/sightings`)
+            ]);
+
+            if (pendingRes.ok) setPendingReports(await pendingRes.json());
+            if (mapRes.ok) setMapReports(await mapRes.json());
+
         } catch (error) {
-            console.error("Failed to fetch pending reports:", error);
+            console.error("Failed to fetch reports:", error);
         } finally {
             setLoading(false);
         }
@@ -68,7 +74,22 @@ export default function RangerDashboard() {
             });
 
             if (res.ok) {
+                const updatedReport = await res.json();
+
+                // 1. Remove from Pending Triage List
                 setPendingReports((prev) => prev.filter((report) => report._id !== sightingId));
+
+                // 2. Either update the Map List or remove if rejected
+                if (newStatus === 'rejected') {
+                    setMapReports(prev => prev.filter(r => r._id !== sightingId));
+                } else {
+                    setMapReports(prev => {
+                        const exists = prev.find(r => r._id === sightingId);
+                        return exists
+                            ? prev.map(r => r._id === sightingId ? updatedReport : r)
+                            : [updatedReport, ...prev];
+                    });
+                }
             } else {
                 alert("Failed to update sighting status.");
             }
@@ -221,10 +242,11 @@ export default function RangerDashboard() {
                     attribution='&copy; OpenStreetMap'
                 />
 
-                {/* Plot all pending reports */}
-                {pendingReports.map(report => {
+                {/* Plot all active map reports */}
+                {mapReports.map(report => {
                     if (!report.location || !report.location.coordinates) return null;
                     const [lng, lat] = report.location.coordinates;
+                    const isVerified = report.status === 'verified';
 
                     // Parse the description safely for the tiny popup
                     const displayDesc = report.description && report.description.includes('Notes:')
@@ -232,7 +254,7 @@ export default function RangerDashboard() {
                         : (report.description || "Reported Sighting");
 
                     return (
-                        <Marker key={`map-${report._id}`} position={[lat, lng]} icon={getSightingIcon()}>
+                        <Marker key={`map-${report._id}`} position={[lat, lng]} icon={getSightingIcon(report.status)}>
                             <Popup className="tactical-popup">
                                 <div className="text-black flex flex-col min-w-[180px] p-1">
                                     {/* Map Popup Evidence Image */}
@@ -241,7 +263,12 @@ export default function RangerDashboard() {
                                     )}
 
                                     <strong className="text-sm leading-tight mb-1 truncate w-full block">{displayDesc}</strong>
-                                    <p className="text-xs text-gray-600 font-medium leading-snug">Rep: {report.user?.fullName || 'Scout'}</p>
+
+                                    {isVerified ? (
+                                        <div className="text-[10px] font-bold text-red-700 bg-red-100/50 px-2 py-0.5 rounded border border-red-300 w-max mb-1">✓ VERIFIED ZONE</div>
+                                    ) : (
+                                        <p className="text-xs text-gray-600 font-medium leading-snug">Rep: {report.user?.fullName || 'Scout'}</p>
+                                    )}
 
                                     {/* Clickable Phone Number inside the map! */}
                                     {report.user?.phone && (
@@ -250,21 +277,23 @@ export default function RangerDashboard() {
                                         </a>
                                     )}
 
-                                    {/* Action Buttons directly on the map */}
-                                    <div className="flex gap-2 w-full mt-2">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleVerifyStatus(report._id, 'verified'); }}
-                                            className="flex-1 bg-[#2ECC71] text-[#121212] text-[10px] font-bold py-2 rounded shadow-sm hover:opacity-80 transition-opacity"
-                                        >
-                                            VERIFY
-                                        </button>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleVerifyStatus(report._id, 'rejected'); }}
-                                            className="flex-1 bg-[#E74C3C] text-white text-[10px] font-bold py-2 rounded shadow-sm hover:opacity-80 transition-opacity"
-                                        >
-                                            REJECT
-                                        </button>
-                                    </div>
+                                    {/* Action Buttons directly on the map - Only if pending */}
+                                    {report.status === 'pending' && (
+                                        <div className="flex gap-2 w-full mt-2">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleVerifyStatus(report._id, 'verified'); }}
+                                                className="flex-1 bg-[#2ECC71] text-[#121212] text-[10px] font-bold py-2 rounded shadow-sm hover:opacity-80 transition-opacity"
+                                            >
+                                                VERIFY
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleVerifyStatus(report._id, 'rejected'); }}
+                                                className="flex-1 bg-[#E74C3C] text-white text-[10px] font-bold py-2 rounded shadow-sm hover:opacity-80 transition-opacity"
+                                            >
+                                                REJECT
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </Popup>
 
@@ -272,7 +301,13 @@ export default function RangerDashboard() {
                             <Circle
                                 center={[lat, lng]}
                                 radius={2000}
-                                pathOptions={{ color: '#f39c12', fillColor: '#f39c12', fillOpacity: 0.15, weight: 1, dashArray: '4, 4' }}
+                                pathOptions={{
+                                    color: isVerified ? '#e74c3c' : '#f39c12',
+                                    fillColor: isVerified ? '#e74c3c' : '#f39c12',
+                                    fillOpacity: 0.15,
+                                    weight: 1,
+                                    dashArray: '4, 4'
+                                }}
                             />
                         </Marker>
                     );
