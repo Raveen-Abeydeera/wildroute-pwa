@@ -76,7 +76,7 @@ export default function RangerDashboard() {
                             {/* Image Header */}
                             <div className="relative h-48 w-full bg-[#2C3E50]">
                                 {report.imageUrl ? (
-                                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${API_URL}${report.imageUrl})` }}></div>
+                                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${report.imageUrl})` }}></div>
                                 ) : (
                                     <div className="absolute inset-0 flex items-center justify-center bg-[#1E272E]">
                                         <span className="material-symbols-outlined text-6xl text-[#2C3E50]">landscape</span>
@@ -95,7 +95,8 @@ export default function RangerDashboard() {
                                 <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md border border-white/10 text-white px-3 py-1.5 rounded-full flex items-center gap-2">
                                     <span className={`material-symbols-outlined text-[18px] ${trustScore > 300 ? 'text-[#2ECC71]' : 'text-[#f39c12]'}`}>verified_user</span>
                                     <div className="flex flex-col leading-none">
-                                        <span className="text-[10px] text-[#95A5A6] uppercase">{report.user?.name || 'Scout'}</span>
+                                        {/* UPDATED: Changed from .name to .fullName */}
+                                        <span className="text-[10px] text-[#95A5A6] uppercase">{report.user?.fullName || 'Scout'}</span>
                                         <span className="text-xs font-bold">{trustScore} pts</span>
                                     </div>
                                 </div>
@@ -126,6 +127,23 @@ export default function RangerDashboard() {
                                         <span className="material-symbols-outlined text-[#95A5A6]">map</span>
                                     </div>
                                 </div>
+
+                                {/* --- NEW: Contact Reporter Row --- */}
+                                {report.user?.phone && (
+                                    <div className="flex items-center justify-between bg-[#2C3E50]/30 p-3 rounded-xl border border-[#2C3E50]/50">
+                                        <div className="flex items-center gap-3">
+                                            <span className="material-symbols-outlined text-[#3498DB]">phone_in_talk</span>
+                                            <div className="flex flex-col">
+                                                <span className="text-xs text-[#95A5A6] uppercase font-bold tracking-wider">Contact Reporter</span>
+                                                <span className="text-sm font-bold text-[#ECF0F1]">{report.user.phone}</span>
+                                            </div>
+                                        </div>
+                                        <a href={`tel:${report.user.phone}`} className="bg-[#3498DB]/20 text-[#3498DB] px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#3498DB] hover:text-white transition-colors border border-[#3498DB]/30">
+                                            CALL NOW
+                                        </a>
+                                    </div>
+                                )}
+                                {/* -------------------------------- */}
 
                                 <div className="h-px bg-[#2C3E50] w-full"></div>
 
