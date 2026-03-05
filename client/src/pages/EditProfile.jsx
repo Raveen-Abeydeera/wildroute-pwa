@@ -42,8 +42,15 @@ export default function EditProfile() {
     }, []);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    let value = e.target.value;
+    
+    // If the user is typing in the phone box, remove all letters instantly
+    if (e.target.name === 'phone') {
+        value = value.replace(/[^0-9+\s]/g, '');
+    }
+    
+    setFormData({ ...formData, [e.target.name]: value });
+   };
 
     // Handle the image selection
     const handleImageChange = (e) => {
@@ -247,3 +254,4 @@ export default function EditProfile() {
         </div>
     );
 }
+
