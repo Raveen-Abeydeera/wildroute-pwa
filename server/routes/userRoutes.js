@@ -28,12 +28,22 @@ router.get('/:id', async (req, res) => {
         const user = await User.findById(req.params.id).select('-password');
         if (!user) return res.status(404).json({ message: 'User not found' });
 
+        // 1. Count ALL reports by this user
         const reportCount = await Sighting.countDocuments({ user: req.params.id });
+
+        // 2. NEW: Count ONLY VERIFIED reports by this user
+        const verifiedCount = await Sighting.countDocuments({ user: req.params.id, status: 'verified' });
+
+        // 3. Get recent reports
         const myReports = await Sighting.find({ user: req.params.id }).sort({ createdAt: -1 }).limit(5);
 
         res.json({
             user,
-            stats: { reportCount, verifiedCount: 0, zonesCount: 1 },
+            stats: {
+                reportCount,
+                verifiedCount: verifiedCount, // <-- Now uses the real database count!
+                zonesCount: 1
+            },
             recentReports: myReports
         });
     } catch (err) {
