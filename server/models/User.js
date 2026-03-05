@@ -29,9 +29,11 @@ const userSchema = new mongoose.Schema({
 
   role: {
     type: String,
-    enum: ['user', 'User', 'ranger', 'admin'], // Added 'User' to prevent errors
-    default: 'user'
+    enum: ['user', 'ranger', 'admin'],
+    default: 'user',
+    lowercase: true // <-- ADD THIS LINE
   },
+
   departmentId: {
     type: String, // For Rangers/Admins
     required: false
