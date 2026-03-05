@@ -30,7 +30,8 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: ['user', 'ranger', 'admin'], // Updated roles
-    default: 'user'
+    default: 'user',
+    lowercase: true // Add this so 'User' and 'Ranger' get automatically converted to lowercase 'user' and 'ranger'
   },
   departmentId: {
     type: String, // For Rangers/Admins
