@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
     lowercase: true
   },
   phone: {
-    type: String,
+    type: Number,
     required: true, // Now it is mandatory!
     unique: true    // Ensures no two accounts share a number
   },
