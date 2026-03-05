@@ -42,15 +42,17 @@ export default function EditProfile() {
     }, []);
 
     const handleChange = (e) => {
-    let value = e.target.value;
-    
-    // If the user is typing in the phone box, remove all letters instantly
-    if (e.target.name === 'phone') {
-        value = value.replace(/[^0-9+\s]/g, '');
-    }
-    
-    setFormData({ ...formData, [e.target.name]: value });
-   };
+        let value = e.target.value;
+
+        // If the user is typing in the phone box, remove all letters instantly
+        if (e.target.name === 'phone') {
+            value = value.replace(/[^0-9+\s]/g, '');
+            // Force the physical input box to drop the letter immediately
+            e.target.value = value;
+        }
+
+        setFormData({ ...formData, [e.target.name]: value });
+    };
 
     // Handle the image selection
     const handleImageChange = (e) => {
@@ -254,4 +256,3 @@ export default function EditProfile() {
         </div>
     );
 }
-

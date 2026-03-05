@@ -68,8 +68,21 @@ export default function Signup() {
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Mobile Number</label>
-              <input type="tel" required className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none" placeholder="+94 77 123 4567" value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/[^0-9+\s]/g, '') })}/>
+              <input
+                type="tel"
+                required
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#1d2125] p-3 text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#19664d] focus:ring-1 focus:ring-[#19664d] outline-none"
+                placeholder="+94 77 123 4567"
+                value={formData.phone}
+                onChange={(e) => {
+                  // 1. Filter out letters
+                  const filteredValue = e.target.value.replace(/[^0-9+\s]/g, '');
+                  // 2. Force the browser's input box to update instantly
+                  e.target.value = filteredValue;
+                  // 3. Save to React state
+                  setFormData({ ...formData, phone: filteredValue });
+                }}
+              />
             </div>
 
             <div>
@@ -95,5 +108,4 @@ export default function Signup() {
       </div>
     </div>
   );
-
 }
