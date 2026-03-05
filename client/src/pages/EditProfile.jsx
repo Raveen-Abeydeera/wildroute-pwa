@@ -42,7 +42,11 @@ export default function EditProfile() {
     }, []);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        let value = e.target.value;
+        if (e.target.name === 'phone') {
+            value = value.replace(/[^\d+]/g, '');
+        }
+        setFormData({ ...formData, [e.target.name]: value });
     };
 
     // Handle the image selection
