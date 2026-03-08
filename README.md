@@ -74,7 +74,7 @@ Start the frontend development server: npm run dev
 
 
 📂 Folder Structure
-Plaintext
+
 wildroute-pwa/
 ├── client/                 # React Frontend
 │   ├── public/             # PWA assets (icons, manifest)
