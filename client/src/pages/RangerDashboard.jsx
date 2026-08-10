@@ -4,6 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import ElephantAnalyticsChart from '../components/ElephantAnalyticsChart';
+import PeakConflictHoursChart from '../components/PeakConflictHoursChart';
+import DangerousRoutesChart from '../components/DangerousRoutesChart';
 
 // Fix Default Leaflet Icons
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -382,11 +384,8 @@ export default function RangerDashboard() {
     const RenderAnalytics = () => (
         <div className="h-full space-y-6 pb-24 overflow-y-auto">
             <ElephantAnalyticsChart />
-            <div className="flex flex-col items-center justify-center text-[#95A5A6] opacity-70 mt-10">
-                <span className="material-symbols-outlined text-6xl mb-4 text-[#f39c12]">bar_chart</span>
-                <h2 className="text-xl font-bold text-white mb-2">More Analytics Coming Soon</h2>
-                <p className="text-sm max-w-xs text-center">Peak conflict hours, most dangerous routes, and resource deployment charts.</p>
-            </div>
+            <PeakConflictHoursChart />
+            <DangerousRoutesChart />
         </div>
     );
 
